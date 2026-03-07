@@ -46,8 +46,32 @@ struct ExplanationCacheEntry<'a> {
 }
 
 fn cache_path_for_file(file: &str) -> PathBuf {
-    let safe_name = file.replace(['/', '\\'], "__");
-    Path::new(CACHE_DIR).join(format!("{}.json", safe_name))
+    // Use a stable hash of the full file path to avoid collisions and
+    // platform-specific filename issues.
+    let mut hasher = DefaultHasher::new();
+    file.hash(&mut hasher);
+    let hash = hasher.finish();
+
+    // Use the file's basename (if available) as a human-readable prefix, but
+    // sanitize it to ensure it is safe as a filename component.
+    let basename = Path::new(file)
+        .file_name()
+        .and_then(|s| s.to_str())
+        .unwrap_or("file");
+
+    let safe_prefix: String = basename
+        .chars()
+        .map(|c| {
+            if c.is_ascii_alphanumeric() || c == '_' || c == '-' {
+                c
+            } else {
+                '_'
+            }
+        })
+        .collect();
+
+    let filename = format!("{}-{:016x}.json", safe_prefix, hash);
+    Path::new(CACHE_DIR).join(filename)
 }
 
 fn log_ai_event(file: &str, cache_hit: bool, api_response_time: Option<f64>, error: Option<&str>) {
