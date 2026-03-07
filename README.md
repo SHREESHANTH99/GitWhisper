@@ -1,7 +1,7 @@
-# Git-insight 🔍
+# gitWhisper 🔍
 ### AI-Powered Git Commit Intelligence for Developers
 
-Git-insight is a **Rust-based developer tool** that explains the evolution of your codebase using AI.
+gitWhisper is a **Rust-based developer tool** that explains the evolution of your codebase using AI.
 
 It captures developer context during commits and combines it with Git history to generate **human-readable explanations of why files changed**, not just what changed.
 
@@ -16,7 +16,7 @@ Git shows **what changed**, but developers often struggle to understand:
 - The intent behind the commit
 - The evolution of a file over time
 
-Git-insight bridges that gap by combining:
+gitWhisper bridges that gap by combining:
 
 - Git commit history
 - developer commands
@@ -34,7 +34,7 @@ This allows developers to quickly understand the history and purpose of any file
 Explain why a file changed using AI.
 
 ```
-Git-insight explain auth.js
+gitWhisper explain auth.js
 ```
 
 Example output:
@@ -51,7 +51,7 @@ authentication security.
 
 ## Commit Context Capture
 
-Git-insight captures developer activity during commits including:
+gitWhisper captures developer activity during commits including:
 
 - commands executed
 - environment metadata
@@ -60,7 +60,7 @@ Git-insight captures developer activity during commits including:
 Example stored metadata:
 
 ```
-.git/Git-insight/f6e3058.json
+.git/gitWhisper/f6e3058.json
 ```
 
 Example structure:
@@ -78,12 +78,12 @@ Example structure:
 
 ## Explanation Caching
 
-To avoid repeated AI calls, Git-insight stores explanations locally.
+To avoid repeated AI calls, gitWhisper stores explanations locally.
 
 Cache location:
 
 ```
-.git/Git-insight/cache/
+.git/gitWhisper/cache/
 ```
 
 Benefits:
@@ -96,10 +96,10 @@ Benefits:
 
 ## Timeline Viewer
 
-Git-insight can show the **timeline of changes for a file**.
+gitWhisper can show the **timeline of changes for a file**.
 
 ```
-Git-insight timeline auth.js
+gitWhisper timeline auth.js
 ```
 
 Example:
@@ -116,7 +116,7 @@ a3b2819  Add authentication middleware
 
 # 🧠 How It Works
 
-Git-insight collects context during commits and later uses it to explain changes.
+gitWhisper collects context during commits and later uses it to explain changes.
 
 Pipeline:
 
@@ -146,13 +146,13 @@ Return Explanation
 Clone the repository:
 
 ```
-git clone https://github.com/YOUR_USERNAME/Git-insight.git
+git clone https://github.com/YOUR_USERNAME/gitWhisper.git
 ```
 
 Enter the project directory:
 
 ```
-cd Git-insight
+cd gitWhisper
 ```
 
 Build the project:
@@ -171,7 +171,7 @@ cargo run -- explain auth.js
 
 # 🔑 Gemini API Setup
 
-Git-insight uses **Google Gemini API** for AI explanations.
+gitWhisper uses **Google Gemini API** for AI explanations.
 
 Create an API key:
 
@@ -196,7 +196,7 @@ export GEMINI_API_KEY="YOUR_API_KEY"
 # 📁 Project Structure
 
 ```
-Git-insight
+gitWhisper
 │
 ├── src
 │   ├── collectors
@@ -234,25 +234,25 @@ Git-insight
 Explain a file:
 
 ```
-Git-insight explain auth.js
+gitWhisper explain auth.js
 ```
 
 Show commit timeline:
 
 ```
-Git-insight timeline auth.js
+gitWhisper timeline auth.js
 ```
 
 Replay commit activity:
 
 ```
-Git-insight replay
+gitWhisper replay
 ```
 
 View commit logs:
 
 ```
-Git-insight log
+gitWhisper log
 ```
 
 ---
@@ -285,7 +285,7 @@ Steps:
 
 # ⭐ Support
 
-If you find Git-insight useful:
+If you find gitWhisper useful:
 
 - ⭐ Star the repository
 - 🐛 Report bugs
