@@ -10,10 +10,12 @@ use cli::{Cli, Commands};
 fn main() {
     let cli = Cli::parse();
 
+    // Load environment variables from .env file
+    dotenvy::dotenv().ok();
+
     // Optional: read API key from environment if not passed via CLI
     let default_api_key =
-        std::env::var("GEMINI_API_KEY").unwrap_or_else(|_| String::from("AIzaSyAffeLbH0n0Vkz4DTLFHKTwSnts4kpQ3y4"));
-
+        std::env::var("GEMINI_API_KEY").unwrap_or_else(|_| String::new());
     match cli.command {
         Commands::Init => hooks::install_hook(),
         Commands::Capture => capture::capture_context(),
