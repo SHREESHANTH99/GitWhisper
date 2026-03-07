@@ -11,5 +11,11 @@ pub struct Cli {
 pub enum Commands {
     Init,
     Capture,
-    Log
+    Log,
+    Replay { commit: String },
+    Explain {
+        file: String,
+        #[arg(short, long, default_value = "")]
+        api_key: String,
+    },
 }
