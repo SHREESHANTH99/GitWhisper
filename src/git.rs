@@ -5,22 +5,16 @@ pub fn open_repo() -> Repository {
         .expect("Not inside a git repository")
 }
 
-pub fn current_commit_hash() -> String {
+pub fn current_commit_hash() -> Option<String> {
+    let repo = Repository::discover(".").ok()?;
+    let head = repo.head().ok()?;
+    let oid = head.target()?;
 
-    let repo = open_repo();
-
-    let head = repo.head()
-        .expect("Cannot find HEAD");
-
-    let oid = head.target()
-        .expect("HEAD has no target");
-
-    oid.to_string()
+    Some(oid.to_string()) // convert git2::Oid to String
 }
 
-pub fn short_commit_hash() -> String {
+pub fn short_commit_hash() -> Option<String> {
+    let full = current_commit_hash()?; // returns Option<String>
 
-    let full = current_commit_hash();
-
-    full[..7].to_string()
+    Some(full[..7].to_string()) // take first 7 chars and convert to owned String
 }

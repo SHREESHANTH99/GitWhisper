@@ -1,35 +1,19 @@
 use clap::{Parser, Subcommand};
 
 #[derive(Parser)]
-#[command(name="git-lens")]
+#[command(name = "commitlens")]
 pub struct Cli {
 
     #[command(subcommand)]
-    command: Commands,
+    pub command: Commands,
 }
 
 #[derive(Subcommand)]
-enum Commands {
+pub enum Commands {
+
     Init,
+
+    Capture,
+
     Log,
-    Replay { commit: String },
-}
-
-pub fn run() {
-
-    let cli = Cli::parse();
-
-    match cli.command {
-        Commands::Init => {
-            println!("CommitLens initialized");
-        }
-
-        Commands::Log => {
-            println!("Showing commit logs");
-        }
-
-        Commands::Replay { commit } => {
-            println!("Replaying commit {}", commit);
-        }
-    }
 }

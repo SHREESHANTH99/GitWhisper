@@ -1,8 +1,16 @@
 use crate::git;
+use crate::storage;
 
 pub fn capture_context() {
 
-    let commit = git::short_commit_hash();
+    if let Some(commit) = git::short_commit_hash() {
 
-    println!("Current commit: {}", commit);
+        println!("Capturing context for commit {}", commit);
+
+        storage::save_context(&commit);
+
+    } else {
+
+        println!("No commit found yet.");
+    }
 }

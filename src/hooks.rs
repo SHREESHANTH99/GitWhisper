@@ -1,18 +1,13 @@
 use std::fs;
-use std::os::unix::fs::PermissionsExt;
 
-pub fn install_hooks() {
+pub fn install_hook() {
 
-    let pre_commit = ".git/hooks/pre-commit";
-    let post_commit = ".git/hooks/post-commit";
+    let hook = r#"#!/bin/sh
+commitlens capture
+"#;
 
-    fs::write(pre_commit, "commitlens precommit").unwrap();
-    fs::write(post_commit, "commitlens postcommit").unwrap();
+    fs::write(".git/hooks/post-commit", hook)
+        .expect("Failed to write hook");
 
-    let perm = fs::Permissions::from_mode(0o755);
-
-    fs::set_permissions(pre_commit, perm.clone()).unwrap();
-    fs::set_permissions(post_commit, perm).unwrap();
-
-    println!("Hooks installed");
+    println!("Post-commit hook installed.");
 }
