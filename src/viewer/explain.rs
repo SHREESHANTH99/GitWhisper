@@ -7,10 +7,10 @@ use std::hash::{Hash, Hasher};
 use std::path::{Path, PathBuf};
 use std::time::Instant;
 
-const CONTEXT_DIR: &str = ".git/git-insight";
-const CACHE_DIR: &str = ".git/git-insight/cache";
-const LOG_DIR: &str = ".git/git-insight/logs";
-const LOG_FILE: &str = ".git/git-insight/logs/ai.log";
+const CONTEXT_DIR: &str = ".git/gitWhisper";
+const CACHE_DIR: &str = ".git/gitWhisper/cache";
+const LOG_DIR: &str = ".git/gitWhisper/logs";
+const LOG_FILE: &str = ".git/gitWhisper/logs/ai.log";
 const AI_MODEL: &str = "gemini-1.5-flash";
 const HISTORY_LIMIT: usize = 10;
 

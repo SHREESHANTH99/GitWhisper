@@ -1,7 +1,7 @@
 use clap::{Parser, Subcommand};
 
 #[derive(Parser)]
-#[command(name="git-insight")]
+#[command(name="gitWhisper")]
 pub struct Cli {
     #[command(subcommand)]
     pub command: Commands

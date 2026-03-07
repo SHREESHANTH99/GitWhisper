@@ -5,7 +5,7 @@ use crate::storage::context::Context;
 
 pub fn save_context(ctx: &Context) {
 
-    let dir = ".git/git-insight";
+    let dir = ".git/gitWhisper";
 
     fs::create_dir_all(dir).unwrap();
 
