@@ -1,19 +1,15 @@
 use clap::{Parser, Subcommand};
 
 #[derive(Parser)]
-#[command(name = "commitlens")]
+#[command(name="commitlens")]
 pub struct Cli {
-
     #[command(subcommand)]
-    pub command: Commands,
+    pub command: Commands
 }
 
 #[derive(Subcommand)]
 pub enum Commands {
-
     Init,
-
     Capture,
-
-    Log,
+    Log
 }

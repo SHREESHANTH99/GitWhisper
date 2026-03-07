@@ -8,21 +8,11 @@ use clap::Parser;
 use cli::{Cli, Commands};
 
 fn main() {
-
     let cli = Cli::parse();
 
     match cli.command {
-
-        Commands::Init => {
-            hooks::install_hook();
-        }
-
-        Commands::Capture => {
-            capture::capture_context();
-        }
-
-        Commands::Log => {
-            storage::show_logs();
-        }
+        Commands::Init => hooks::install_hook(),
+        Commands::Capture => capture::capture_context(),
+        Commands::Log => storage::show_logs(),
     }
 }
