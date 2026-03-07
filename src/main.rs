@@ -1,8 +1,8 @@
 mod git;
-mod capture;
 
 fn main() {
 
-    capture::capture_context();
+    let hash = git::short_commit_hash();
 
+    println!("Commit: {}", hash);
 }
