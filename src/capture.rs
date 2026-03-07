@@ -25,7 +25,7 @@ pub fn recent_commands() -> Vec<String> {
 pub fn environment_info() -> String {
     let os = std::env::consts::OS;
     let branch = Command::new("git")
-        .args(&["rev-parse", "--abbrev-ref", "HEAD"])
+        .args(["rev-parse", "--abbrev-ref", "HEAD"])
         .output()
         .ok()
         .map(|o| String::from_utf8_lossy(&o.stdout).trim().to_string())

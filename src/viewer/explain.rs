@@ -81,6 +81,13 @@ fn log_ai_event(file: &str, cache_hit: bool, api_response_time: Option<f64>, err
         });
 }
 
+fn context_mentions_file(ctx: &CommitContext, file: &str) -> bool {
+    ctx.commands.iter().any(|cmd| cmd.contains(file))
+        || ctx.environment.contains(file)
+        || ctx.os.contains(file)
+        || ctx.node.as_deref().unwrap_or("").contains(file)
+}
+
 fn load_history_for_file(file: &str) -> Vec<CommitContext> {
     let mut history = Vec::new();
 
@@ -101,12 +108,10 @@ fn load_history_for_file(file: &str) -> Vec<CommitContext> {
             }
 
             if let Ok(content) = fs::read_to_string(&path) {
-                if !content.contains(file) {
-                    continue;
-                }
-
                 if let Ok(ctx) = serde_json::from_str::<CommitContext>(&content) {
-                    history.push(ctx);
+                    if context_mentions_file(&ctx, file) {
+                        history.push(ctx);
+                    }
                 }
             }
         }
