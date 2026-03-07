@@ -1,7 +1,7 @@
-# gitWhisper 🔍
+# GitWhisper 🔍
 ### AI-Powered Git Commit Intelligence for Developers
 
-gitWhisper is a **Rust-based developer tool** that explains the evolution of your codebase using AI.
+GitWhisper is a **Rust-based developer tool** that explains the evolution of your codebase using AI.
 
 It captures developer context during commits and combines it with Git history to generate **human-readable explanations of why files changed**, not just what changed.
 
@@ -16,7 +16,7 @@ Git shows **what changed**, but developers often struggle to understand:
 - The intent behind the commit
 - The evolution of a file over time
 
-gitWhisper bridges that gap by combining:
+GitWhisper bridges that gap by combining:
 
 - Git commit history
 - developer commands
@@ -34,7 +34,7 @@ This allows developers to quickly understand the history and purpose of any file
 Explain why a file changed using AI.
 
 ```
-gitWhisper explain auth.js
+GitWhisper explain auth.js
 ```
 
 Example output:
@@ -51,7 +51,7 @@ authentication security.
 
 ## Commit Context Capture
 
-gitWhisper captures developer activity during commits including:
+GitWhisper captures developer activity during commits including:
 
 - commands executed
 - environment metadata
@@ -60,7 +60,7 @@ gitWhisper captures developer activity during commits including:
 Example stored metadata:
 
 ```
-.git/gitWhisper/f6e3058.json
+.git/GitWhisper/f6e3058.json
 ```
 
 Example structure:
@@ -78,12 +78,12 @@ Example structure:
 
 ## Explanation Caching
 
-To avoid repeated AI calls, gitWhisper stores explanations locally.
+To avoid repeated AI calls, GitWhisper stores explanations locally.
 
 Cache location:
 
 ```
-.git/gitWhisper/cache/
+.git/GitWhisper/cache/
 ```
 
 Benefits:
@@ -96,10 +96,10 @@ Benefits:
 
 ## Timeline Viewer
 
-gitWhisper can show the **timeline of changes for a file**.
+GitWhisper can show the **timeline of changes for a file**.
 
 ```
-gitWhisper timeline auth.js
+GitWhisper timeline auth.js
 ```
 
 Example:
@@ -116,7 +116,7 @@ a3b2819  Add authentication middleware
 
 # 🧠 How It Works
 
-gitWhisper collects context during commits and later uses it to explain changes.
+GitWhisper collects context during commits and later uses it to explain changes.
 
 Pipeline:
 
@@ -146,13 +146,13 @@ Return Explanation
 Clone the repository:
 
 ```
-git clone https://github.com/YOUR_USERNAME/gitWhisper.git
+git clone https://github.com/YOUR_USERNAME/GitWhisper.git
 ```
 
 Enter the project directory:
 
 ```
-cd gitWhisper
+cd GitWhisper
 ```
 
 Build the project:
@@ -171,7 +171,7 @@ cargo run -- explain auth.js
 
 # 🔑 Gemini API Setup
 
-gitWhisper uses **Google Gemini API** for AI explanations.
+GitWhisper uses **Google Gemini API** for AI explanations.
 
 Create an API key:
 
@@ -196,7 +196,7 @@ export GEMINI_API_KEY="YOUR_API_KEY"
 # 📁 Project Structure
 
 ```
-gitWhisper
+GitWhisper
 │
 ├── src
 │   ├── collectors
@@ -234,25 +234,25 @@ gitWhisper
 Explain a file:
 
 ```
-gitWhisper explain auth.js
+GitWhisper explain auth.js
 ```
 
 Show commit timeline:
 
 ```
-gitWhisper timeline auth.js
+GitWhisper timeline auth.js
 ```
 
 Replay commit activity:
 
 ```
-gitWhisper replay
+GitWhisper replay
 ```
 
 View commit logs:
 
 ```
-gitWhisper log
+GitWhisper log
 ```
 
 ---
@@ -285,7 +285,7 @@ Steps:
 
 # ⭐ Support
 
-If you find gitWhisper useful:
+If you find GitWhisper useful:
 
 - ⭐ Star the repository
 - 🐛 Report bugs
