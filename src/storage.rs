@@ -18,14 +18,14 @@ pub fn save_context_full(commit: &str, commands: Vec<String>, environment: Strin
         environment,
     };
 
-    fs::create_dir_all(".git/commitlens").unwrap();
-    let file = format!(".git/commitlens/{}.json", commit);
+    fs::create_dir_all(".git/git-insight").unwrap();
+    let file = format!(".git/git-insight/{}.json", commit);
     let json = serde_json::to_string_pretty(&context).unwrap();
     fs::write(file, json).unwrap();
     println!("Saved full context for commit {}", commit);
 }
 pub fn show_logs() {
-    let dir = ".git/commitlens";
+    let dir = ".git/git-insight";
     if let Ok(entries) = fs::read_dir(dir) {
         for entry in entries.flatten() {
             let path = entry.path();
@@ -34,6 +34,6 @@ pub fn show_logs() {
             }
         }
     } else {
-        println!("No commitlens context found yet.");
+        println!("No git-insight context found yet.");
     }
 }

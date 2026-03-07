@@ -10,7 +10,7 @@ struct CommitContext {
 }
 
 pub fn replay_commit(commit: &str) {
-    let path = format!(".git/commitlens/{}.json", commit);
+    let path = format!(".git/git-insight/{}.json", commit);
     let data = fs::read_to_string(&path).expect("Commit context not found");
     let context: CommitContext = serde_json::from_str(&data).unwrap();
 
