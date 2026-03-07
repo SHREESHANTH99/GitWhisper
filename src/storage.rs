@@ -22,7 +22,7 @@ pub fn save_context_full(commit: &str, commands: Vec<String>, environment: Strin
     let file = format!(".git/commitlens/{}.json", commit);
     let json = serde_json::to_string_pretty(&context).unwrap();
     fs::write(file, json).unwrap();
-    println!("Saved context for commit {}", commit);
+    println!("Saved full context for commit {}", commit);
 }
 pub fn show_logs() {
     let dir = ".git/commitlens";
