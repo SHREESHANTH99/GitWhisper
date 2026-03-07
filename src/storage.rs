@@ -10,7 +10,6 @@ pub struct CommitContext {
     pub environment: String,
 }
 
-// Save context into .git/commitlens/<commit>.json
 pub fn save_context_full(commit: &str, commands: Vec<String>, environment: String) {
     let context = CommitContext {
         commit: commit.to_string(),
@@ -20,20 +19,21 @@ pub fn save_context_full(commit: &str, commands: Vec<String>, environment: Strin
     };
 
     fs::create_dir_all(".git/commitlens").unwrap();
-    let file_path = format!(".git/commitlens/{}.json", commit);
+    let file = format!(".git/commitlens/{}.json", commit);
     let json = serde_json::to_string_pretty(&context).unwrap();
-    fs::write(file_path, json).unwrap();
+    fs::write(file, json).unwrap();
     println!("Saved context for commit {}", commit);
 }
-
-// Optional: show all logs
 pub fn show_logs() {
     let dir = ".git/commitlens";
     if let Ok(entries) = fs::read_dir(dir) {
-        for entry in entries {
-            let file = entry.unwrap().path();
-            let data = fs::read_to_string(file).unwrap();
-            println!("{}", data);
+        for entry in entries.flatten() {
+            let path = entry.path();
+            if let Ok(content) = fs::read_to_string(&path) {
+                println!("{}", content);
+            }
         }
+    } else {
+        println!("No commitlens context found yet.");
     }
 }

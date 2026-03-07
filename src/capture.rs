@@ -4,28 +4,24 @@ use std::fs;
 use std::process::Command;
 use dirs::home_dir;
 
-// Capture recent terminal commands on Windows + Linux
 pub fn recent_commands() -> Vec<String> {
     let mut commands = Vec::new();
 
     if let Some(home) = home_dir() {
-        // Git Bash / Linux Bash
+        // Git Bash / Linux
         let bash_history = home.join(".bash_history");
         if let Ok(content) = fs::read_to_string(bash_history) {
             commands.extend(content.lines().rev().take(20).map(|l| l.to_string()));
         }
-
         // Windows PowerShell
         let ps_history = home.join(r"AppData\Roaming\Microsoft\Windows\PowerShell\PSReadLine\ConsoleHost_history.txt");
         if let Ok(content) = fs::read_to_string(ps_history) {
             commands.extend(content.lines().rev().take(20).map(|l| l.to_string()));
         }
     }
-
     commands
 }
 
-// Capture environment info
 pub fn environment_info() -> String {
     let os = std::env::consts::OS;
     let branch = Command::new("git")
@@ -55,7 +51,6 @@ pub fn environment_info() -> String {
     )
 }
 
-// Capture everything and save
 pub fn capture_context() {
     if let Some(commit) = git::short_commit_hash() {
         println!("Capturing context for commit {}", commit);
