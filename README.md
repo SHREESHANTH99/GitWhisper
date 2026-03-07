@@ -1,7 +1,7 @@
-# CommitLens 🔍
+# Git-insight 🔍
 ### AI-Powered Git Commit Intelligence for Developers
 
-CommitLens is a **Rust-based developer tool** that explains the evolution of your codebase using AI.
+Git-insight is a **Rust-based developer tool** that explains the evolution of your codebase using AI.
 
 It captures developer context during commits and combines it with Git history to generate **human-readable explanations of why files changed**, not just what changed.
 
@@ -16,7 +16,7 @@ Git shows **what changed**, but developers often struggle to understand:
 - The intent behind the commit
 - The evolution of a file over time
 
-CommitLens bridges that gap by combining:
+Git-insight bridges that gap by combining:
 
 - Git commit history
 - developer commands
@@ -34,7 +34,7 @@ This allows developers to quickly understand the history and purpose of any file
 Explain why a file changed using AI.
 
 ```
-commitlens explain auth.js
+Git-insight explain auth.js
 ```
 
 Example output:
@@ -51,7 +51,7 @@ authentication security.
 
 ## Commit Context Capture
 
-CommitLens captures developer activity during commits including:
+Git-insight captures developer activity during commits including:
 
 - commands executed
 - environment metadata
@@ -60,7 +60,7 @@ CommitLens captures developer activity during commits including:
 Example stored metadata:
 
 ```
-.git/commitlens/f6e3058.json
+.git/Git-insight/f6e3058.json
 ```
 
 Example structure:
@@ -78,12 +78,12 @@ Example structure:
 
 ## Explanation Caching
 
-To avoid repeated AI calls, CommitLens stores explanations locally.
+To avoid repeated AI calls, Git-insight stores explanations locally.
 
 Cache location:
 
 ```
-.git/commitlens/cache/
+.git/Git-insight/cache/
 ```
 
 Benefits:
@@ -96,10 +96,10 @@ Benefits:
 
 ## Timeline Viewer
 
-CommitLens can show the **timeline of changes for a file**.
+Git-insight can show the **timeline of changes for a file**.
 
 ```
-commitlens timeline auth.js
+Git-insight timeline auth.js
 ```
 
 Example:
@@ -116,7 +116,7 @@ a3b2819  Add authentication middleware
 
 # 🧠 How It Works
 
-CommitLens collects context during commits and later uses it to explain changes.
+Git-insight collects context during commits and later uses it to explain changes.
 
 Pipeline:
 
@@ -146,13 +146,13 @@ Return Explanation
 Clone the repository:
 
 ```
-git clone https://github.com/YOUR_USERNAME/commitlens.git
+git clone https://github.com/YOUR_USERNAME/Git-insight.git
 ```
 
 Enter the project directory:
 
 ```
-cd commitlens
+cd Git-insight
 ```
 
 Build the project:
@@ -171,7 +171,7 @@ cargo run -- explain auth.js
 
 # 🔑 Gemini API Setup
 
-CommitLens uses **Google Gemini API** for AI explanations.
+Git-insight uses **Google Gemini API** for AI explanations.
 
 Create an API key:
 
@@ -196,7 +196,7 @@ export GEMINI_API_KEY="YOUR_API_KEY"
 # 📁 Project Structure
 
 ```
-commitlens
+Git-insight
 │
 ├── src
 │   ├── collectors
@@ -234,25 +234,25 @@ commitlens
 Explain a file:
 
 ```
-commitlens explain auth.js
+Git-insight explain auth.js
 ```
 
 Show commit timeline:
 
 ```
-commitlens timeline auth.js
+Git-insight timeline auth.js
 ```
 
 Replay commit activity:
 
 ```
-commitlens replay
+Git-insight replay
 ```
 
 View commit logs:
 
 ```
-commitlens log
+Git-insight log
 ```
 
 ---
@@ -285,7 +285,7 @@ Steps:
 
 # ⭐ Support
 
-If you find CommitLens useful:
+If you find Git-insight useful:
 
 - ⭐ Star the repository
 - 🐛 Report bugs
