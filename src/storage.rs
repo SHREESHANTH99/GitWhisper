@@ -1,39 +1,25 @@
-use serde::Serialize;
-use chrono::Utc;
-use std::fs;
+pub mod context;
+pub mod load;
+pub mod save;
 
-#[derive(Serialize)]
-pub struct CommitContext {
-    pub commit: String,
-    pub timestamp: String,
-    pub commands: Vec<String>,
-    pub environment: String,
+use std::path::PathBuf;
+
+pub fn app_dir() -> Result<PathBuf, String> {
+    Ok(crate::git::git_dir()?.join("gitwhisper"))
 }
 
-pub fn save_context_full(commit: &str, commands: Vec<String>, environment: String) {
-    let context = CommitContext {
-        commit: commit.to_string(),
-        timestamp: Utc::now().to_rfc3339(),
-        commands,
-        environment,
-    };
-
-    fs::create_dir_all(".git/commitlens").unwrap();
-    let file = format!(".git/commitlens/{}.json", commit);
-    let json = serde_json::to_string_pretty(&context).unwrap();
-    fs::write(file, json).unwrap();
-    println!("Saved full context for commit {}", commit);
+pub fn legacy_app_dir() -> Result<PathBuf, String> {
+    Ok(crate::git::git_dir()?.join("commitlens"))
 }
-pub fn show_logs() {
-    let dir = ".git/commitlens";
-    if let Ok(entries) = fs::read_dir(dir) {
-        for entry in entries.flatten() {
-            let path = entry.path();
-            if let Ok(content) = fs::read_to_string(&path) {
-                println!("{}", content);
-            }
-        }
-    } else {
-        println!("No commitlens context found yet.");
-    }
+
+pub fn cache_dir() -> Result<PathBuf, String> {
+    Ok(app_dir()?.join("cache"))
+}
+
+pub fn log_dir() -> Result<PathBuf, String> {
+    Ok(app_dir()?.join("logs"))
+}
+
+pub fn ai_log_path() -> Result<PathBuf, String> {
+    Ok(log_dir()?.join("ai.log"))
 }

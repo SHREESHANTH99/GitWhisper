@@ -1,110 +1,104 @@
-# GitWhisper 🔍
+# Gitwhisper
 ### AI-Powered Git Commit Intelligence for Developers
 
-GitWhisper is a **Rust-based developer tool** that explains the evolution of your codebase using AI.
+`Gitwhisper` is a Rust CLI that explains the evolution of your codebase using AI plus commit-time developer context.
 
-It captures developer context during commits and combines it with Git history to generate **human-readable explanations of why files changed**, not just what changed.
+It captures useful commit metadata after each commit and combines that with Git history to answer the harder question: why did this file change?
 
 ---
 
-# 🚀 Motivation
+# Motivation
 
-Git shows **what changed**, but developers often struggle to understand:
+Git already shows what changed. The missing piece is usually intent:
 
 - Why the change happened
 - What problem it solved
-- The intent behind the commit
-- The evolution of a file over time
+- What the developer was trying to accomplish
+- How a file evolved across multiple commits
 
-GitWhisper bridges that gap by combining:
+`Gitwhisper` bridges that gap by combining:
 
 - Git commit history
 - developer commands
 - environment context
-- AI reasoning
-
-This allows developers to quickly understand the history and purpose of any file.
+- Gemini-powered explanations
 
 ---
 
-# ✨ Features
+# Features
 
 ## AI File Explanation
 
-Explain why a file changed using AI.
+Explain why a file changed using recent Git history plus captured commit context.
 
-```
-GitWhisper explain auth.js
+```bash
+gitwhisper explain auth.js
 ```
 
 Example output:
 
-```
+```text
 AI Explanation:
 The authentication module was updated to introduce JWT token validation.
 Earlier commits added login functionality but lacked proper token
-expiration checks. The latest change fixes this issue and improves
+expiration checks. The latest change closes that gap and improves
 authentication security.
 ```
 
----
-
 ## Commit Context Capture
 
-GitWhisper captures developer activity during commits including:
+`Gitwhisper` captures developer activity for each commit, including:
 
 - commands executed
 - environment metadata
 - timestamps
+- files changed in the commit
 
 Example stored metadata:
 
-```
-.git/GitWhisper/f6e3058.json
+```text
+.git/gitwhisper/f6e3058.json
 ```
 
 Example structure:
 
-```
+```json
 {
   "commit": "f6e3058",
-  "timestamp": "2026-03-07T12:14:26",
+  "timestamp": "2026-03-07T12:14:26Z",
   "commands": ["npm test", "git add auth.js"],
-  "environment": "Node 20.3, Windows 10"
+  "environment": "OS: windows\nBranch: main\nNode: v22.14.0",
+  "files": ["auth.js"]
 }
 ```
 
----
-
 ## Explanation Caching
 
-To avoid repeated AI calls, GitWhisper stores explanations locally.
+To avoid repeated AI calls, `Gitwhisper` stores explanations locally.
 
 Cache location:
 
-```
-.git/GitWhisper/cache/
+```text
+.git/gitwhisper/cache/
 ```
 
 Benefits:
 
-- faster responses
+- faster repeat lookups
 - reduced API usage
-- improved CLI performance
-
----
+- improved CLI responsiveness
 
 ## Timeline Viewer
 
-GitWhisper can show the **timeline of changes for a file**.
+Show the timeline of changes for a file.
 
-```
-GitWhisper timeline auth.js
+```bash
+gitwhisper timeline auth.js
 ```
 
 Example:
 
-```
+```text
 auth.js timeline:
 
 f6e3058  Fix JWT validation
@@ -112,193 +106,213 @@ a3b2819  Add authentication middleware
 918c92f  Initial login system
 ```
 
+## Replay Captured Commit Activity
+
+Replay the metadata captured for the latest commit, or pass a commit hash prefix.
+
+```bash
+gitwhisper replay
+gitwhisper replay f6e3058
+```
+
+## Log Captured Context
+
+View saved commit context entries:
+
+```bash
+gitwhisper log
+```
+
+## Post-Commit Hook Setup
+
+Install the Git hook that captures commit context automatically:
+
+```bash
+gitwhisper init
+```
+
 ---
 
-# 🧠 How It Works
+# How It Works
 
-GitWhisper collects context during commits and later uses it to explain changes.
-
-Pipeline:
-
-```
+```text
 User Command
-     │
-     ▼
+     |
+     v
 Load Commit Metadata
-     │
-     ▼
+     |
+     v
 Build File History
-     │
-     ▼
+     |
+     v
 Generate AI Prompt
-     │
-     ▼
-Call AI Model (Gemini)
-     │
-     ▼
+     |
+     v
+Call Gemini
+     |
+     v
 Return Explanation
 ```
 
 ---
 
-# 📦 Installation
+# Installation
 
 Clone the repository:
 
-```
-git clone https://github.com/YOUR_USERNAME/GitWhisper.git
-```
-
-Enter the project directory:
-
-```
-cd GitWhisper
+```bash
+git clone https://github.com/YOUR_USERNAME/gitwhisper.git
+cd gitwhisper
 ```
 
 Build the project:
 
-```
+```bash
 cargo build --release
 ```
 
 Run the CLI:
 
-```
+```bash
 cargo run -- explain auth.js
+```
+
+Optional: install the post-commit hook so context is captured automatically.
+
+```bash
+cargo run -- init
 ```
 
 ---
 
-# 🔑 Gemini API Setup
+# Gemini API Setup
 
-GitWhisper uses **Google Gemini API** for AI explanations.
+`Gitwhisper` uses the Google Gemini API for AI explanations.
 
-Create an API key:
+Create an API key here:
 
-https://aistudio.google.com/app/apikey
+[https://aistudio.google.com/app/apikey](https://aistudio.google.com/app/apikey)
 
-Set environment variable.
+Set the environment variable.
 
 ### Windows
 
-```
+```powershell
 setx GEMINI_API_KEY "YOUR_API_KEY"
 ```
 
 ### Linux / macOS
 
-```
+```bash
 export GEMINI_API_KEY="YOUR_API_KEY"
 ```
 
 ---
 
-# 📁 Project Structure
+# Project Structure
 
-```
-GitWhisper
-│
-├── src
-│   ├── collectors
-│   │   ├── commands.rs
-│   │   ├── env.rs
-│   │   └── tests.rs
-│   │
-│   ├── storage
-│   │   ├── context.rs
-│   │   ├── load.rs
-│   │   └── save.rs
-│   │
-│   ├── viewer
-│   │   ├── explain.rs
-│   │   ├── log.rs
-│   │   ├── replay.rs
-│   │   └── timeline.rs
-│   │
-│   ├── capture.rs
-│   ├── cli.rs
-│   ├── git.rs
-│   ├── hooks.rs
-│   ├── main.rs
-│   └── storage.rs
-│
-├── Cargo.toml
-├── Cargo.lock
-└── README.md
+```text
+gitwhisper
+|
+|-- src
+|   |-- collectors
+|   |   |-- commands.rs
+|   |   |-- env.rs
+|   |   `-- tests.rs
+|   |
+|   |-- storage
+|   |   |-- context.rs
+|   |   |-- load.rs
+|   |   `-- save.rs
+|   |
+|   |-- viewer
+|   |   |-- explain.rs
+|   |   |-- log.rs
+|   |   |-- replay.rs
+|   |   `-- timeline.rs
+|   |
+|   |-- capture.rs
+|   |-- cli.rs
+|   |-- git.rs
+|   |-- hooks.rs
+|   |-- main.rs
+|   `-- storage.rs
+|
+|-- Cargo.toml
+|-- Cargo.lock
+`-- README.md
 ```
 
 ---
 
-# ⚡ Example Commands
+# Example Commands
 
 Explain a file:
 
-```
-GitWhisper explain auth.js
-```
-
-Show commit timeline:
-
-```
-GitWhisper timeline auth.js
+```bash
+gitwhisper explain auth.js
 ```
 
-Replay commit activity:
+Show a file timeline:
 
-```
-GitWhisper replay
+```bash
+gitwhisper timeline auth.js
 ```
 
-View commit logs:
+Replay the latest captured activity:
 
+```bash
+gitwhisper replay
 ```
-GitWhisper log
+
+Replay a specific commit:
+
+```bash
+gitwhisper replay f6e3058
+```
+
+View saved commit logs:
+
+```bash
+gitwhisper log
+```
+
+Capture context manually:
+
+```bash
+gitwhisper capture
+```
+
+Install the Git hook:
+
+```bash
+gitwhisper init
 ```
 
 ---
 
-# 🛠 Roadmap
-
-Planned improvements:
+# Roadmap
 
 - AI change intent detection (bug / feature / refactor)
 - GitHub PR summarization
 - commit impact analysis
 - code evolution visualization
-- VSCode extension
+- VS Code extension
 - web dashboard for repository insights
 
 ---
 
-# 🤝 Contributing
+# Contributing
 
 Contributions are welcome.
-
-Steps:
 
 1. Fork the repository
 2. Create a feature branch
 3. Commit changes
-4. Submit a pull request
+4. Open a pull request
 
 ---
 
-# ⭐ Support
-
-If you find GitWhisper useful:
-
-- ⭐ Star the repository
-- 🐛 Report bugs
-- 💡 Suggest new features
-
----
-
-# 📜 License
+# License
 
 MIT License
-
----
-
-# 👨‍💻 Author
-
-Built with Rust for developers who want **better insights into their Git history**.

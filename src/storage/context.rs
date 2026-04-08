@@ -1,11 +1,13 @@
-use serde::{Serialize, Deserialize};
+use serde::{Deserialize, Serialize};
 
-#[derive(Serialize, Deserialize)]
-pub struct Context {
-
+#[derive(Debug, Clone, Serialize, Deserialize, Default)]
+pub struct CommitContext {
     pub commit: String,
     pub timestamp: String,
+    #[serde(default)]
     pub commands: Vec<String>,
-    pub node: Option<String>,
-    pub os: String,
+    #[serde(default)]
+    pub environment: String,
+    #[serde(default)]
+    pub files: Vec<String>,
 }

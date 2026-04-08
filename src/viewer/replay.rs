@@ -1,24 +1,44 @@
-use std::fs;
-use serde::Deserialize;
+pub fn replay_commit(commit: Option<&str>) {
+    let context = match commit {
+        Some(commit_prefix) => crate::storage::load::load_context(commit_prefix),
+        None => crate::storage::load::latest_context(),
+    };
 
-#[derive(Deserialize)]
-struct CommitContext {
-    commit: String,
-    timestamp: String,
-    commands: Vec<String>,
-    environment: String,
-}
+    let context = match context {
+        Ok(context) => context,
+        Err(error) => {
+            eprintln!("{error}");
+            return;
+        }
+    };
 
-pub fn replay_commit(commit: &str) {
-    let path = format!(".git/commitlens/{}.json", commit);
-    let data = fs::read_to_string(&path).expect("Commit context not found");
-    let context: CommitContext = serde_json::from_str(&data).unwrap();
-
-    println!("=== Replay for commit {} ===", context.commit);
+    println!("Replay for commit {}", context.commit);
+    if let Some(subject) = crate::git::commit_subject(&context.commit) {
+        println!("Subject: {}", subject);
+    }
     println!("Timestamp: {}", context.timestamp);
-    println!("Environment:\n{}", context.environment);
-    println!("Commands run:");
-    for cmd in context.commands.iter().rev() {  // most recent last
-        println!("> {}", cmd);
+
+    if context.files.is_empty() {
+        println!("Files: none recorded");
+    } else {
+        println!("Files:");
+        for file in &context.files {
+            println!("  - {}", file);
+        }
+    }
+
+    if context.environment.trim().is_empty() {
+        println!("Environment: not captured");
+    } else {
+        println!("Environment:\n{}", context.environment);
+    }
+
+    if context.commands.is_empty() {
+        println!("Commands: none captured");
+    } else {
+        println!("Commands:");
+        for command in context.commands.iter().rev() {
+            println!("  > {}", command);
+        }
     }
 }
