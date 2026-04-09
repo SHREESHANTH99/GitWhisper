@@ -15,7 +15,7 @@ pub fn show_logs() {
     println!("Captured commit contexts:\n");
     for context in contexts {
         let subject = crate::git::commit_subject(&context.commit)
-            .unwrap_or_else(|| "commit subject unavailable".to_string());
+            .unwrap_or_else(|_| "commit subject unavailable".to_string());
 
         println!(
             "{}  {}  {} commands  {} files",
@@ -25,6 +25,15 @@ pub fn show_logs() {
             context.files.len()
         );
         println!("  {}", subject);
+        if !context.analysis.is_empty() {
+            println!("  Intent: {}", context.analysis.intent.summary());
+            if let Some(summary) = context.analysis.diff.summary() {
+                println!("  Diff: {}", summary);
+            }
+            if let Some(summary) = context.analysis.diff.semantic_summary() {
+                println!("  Semantic: {}", summary);
+            }
+        }
 
         if !context.files.is_empty() {
             println!("  Files: {}", context.files.join(", "));

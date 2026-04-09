@@ -1,3 +1,4 @@
+use crate::analysis::ChangeCategory;
 use crate::git::FileCommit;
 use crate::storage::context::CommitContext;
 use reqwest::blocking::Client;
@@ -10,9 +11,6 @@ use std::io::Write;
 use std::path::{Path, PathBuf};
 use std::time::{Duration, Instant};
 
-const AI_MODEL: &str = "gemini-1.5-flash";
-const HISTORY_LIMIT: usize = 10;
-
 #[derive(Debug, Clone)]
 struct HistoryEntry {
     commit: FileCommit,
@@ -23,6 +21,8 @@ struct HistoryEntry {
 struct CachedExplanation {
     #[serde(default = "default_cache_source")]
     source: String,
+    #[serde(default)]
+    ai_model: String,
     last_commit_hash: String,
     commit_history_hash: String,
     explanation: String,
@@ -48,7 +48,22 @@ pub fn explain_file(file: &str, api_key: &str) {
         }
     };
 
-    let history = match load_history_for_file(&normalized_file) {
+    let config = match crate::config::AppConfig::load() {
+        Ok(config) => config,
+        Err(error) => {
+            eprintln!("Failed to load .gitwhisper.toml: {error}");
+            return;
+        }
+    };
+
+    let history_limit = config.ai.history_depth.max(1);
+    let ai_model = if config.ai.model.trim().is_empty() {
+        "gemini-1.5-flash"
+    } else {
+        config.ai.model.as_str()
+    };
+
+    let history = match load_history_for_file(&normalized_file, history_limit) {
         Ok(history) => history,
         Err(error) => {
             eprintln!("{error}");
@@ -61,14 +76,16 @@ pub fn explain_file(file: &str, api_key: &str) {
         return;
     }
 
-    let latest_commit_hash = history[0].commit.short_hash.clone();
+    let latest_commit_hash = history[0].commit.hash.clone();
     let history_hash = history_fingerprint(&history);
+    let ai_enabled = !api_key.is_empty() && !config.privacy.offline_mode;
 
     if let Some(cache) = try_cache_lookup(
         &normalized_file,
         &latest_commit_hash,
         &history_hash,
-        !api_key.is_empty(),
+        ai_enabled,
+        ai_model,
     ) {
         let heading = if cache.source == "ai" {
             "AI Explanation"
@@ -82,7 +99,7 @@ pub fn explain_file(file: &str, api_key: &str) {
     }
 
     let fallback = heuristic_explanation(&normalized_file, &history);
-    if api_key.is_empty() {
+    if !ai_enabled {
         println!("Explanation:\n{}", fallback);
         save_cache(
             &normalized_file,
@@ -90,20 +107,23 @@ pub fn explain_file(file: &str, api_key: &str) {
             &history_hash,
             &fallback,
             "heuristic",
+            ai_model,
         );
-        log_ai_event(
-            &normalized_file,
-            false,
-            None,
-            Some("missing_api_key"),
-            "heuristic",
-        );
+        let reason = if config.privacy.offline_mode {
+            "offline_mode_enabled"
+        } else {
+            "missing_api_key"
+        };
+        log_ai_event(&normalized_file, false, None, Some(reason), "heuristic");
         return;
     }
 
     println!("Generating AI explanation for {}...\n", normalized_file);
     let prompt = build_prompt(&normalized_file, &history);
-    let client = match Client::builder().timeout(Duration::from_secs(45)).build() {
+    let client = match Client::builder()
+        .timeout(Duration::from_secs(config.ai.request_timeout_secs.max(1)))
+        .build()
+    {
         Ok(client) => client,
         Err(error) => {
             eprintln!("Failed to create HTTP client: {}", error);
@@ -114,7 +134,7 @@ pub fn explain_file(file: &str, api_key: &str) {
 
     let url = format!(
         "https://generativelanguage.googleapis.com/v1beta/models/{}:generateContent?key={}",
-        AI_MODEL, api_key
+        ai_model, api_key
     );
 
     let started = Instant::now();
@@ -150,6 +170,7 @@ pub fn explain_file(file: &str, api_key: &str) {
                     &history_hash,
                     &fallback,
                     "heuristic",
+                    ai_model,
                 );
                 log_ai_event(
                     &normalized_file,
@@ -169,6 +190,7 @@ pub fn explain_file(file: &str, api_key: &str) {
                     &history_hash,
                     text,
                     "ai",
+                    ai_model,
                 );
                 log_ai_event(&normalized_file, false, Some(elapsed), None, "ai");
             } else {
@@ -180,6 +202,7 @@ pub fn explain_file(file: &str, api_key: &str) {
                     &history_hash,
                     &fallback,
                     "heuristic",
+                    ai_model,
                 );
                 log_ai_event(
                     &normalized_file,
@@ -199,6 +222,7 @@ pub fn explain_file(file: &str, api_key: &str) {
                 &history_hash,
                 &fallback,
                 "heuristic",
+                ai_model,
             );
             log_ai_event(
                 &normalized_file,
@@ -211,8 +235,11 @@ pub fn explain_file(file: &str, api_key: &str) {
     }
 }
 
-fn load_history_for_file(file: &str) -> Result<Vec<HistoryEntry>, String> {
-    let git_history = crate::git::file_history(file, HISTORY_LIMIT)?;
+fn load_history_for_file(
+    file: &str,
+    limit: usize,
+) -> Result<Vec<HistoryEntry>, crate::error::AppError> {
+    let git_history = crate::git::file_history(file, limit)?;
     let entries = git_history
         .into_iter()
         .map(|commit| {
@@ -246,6 +273,36 @@ fn build_prompt(file: &str, history: &[HistoryEntry]) -> String {
         }
 
         if let Some(context) = &entry.context {
+            if !context.analysis.is_empty() {
+                prompt.push_str(&format!(
+                    "  Detected intent: {}\n",
+                    context.analysis.intent.summary()
+                ));
+                if let Some(summary) = context.analysis.diff.summary() {
+                    prompt.push_str(&format!("  Diff summary: {summary}\n"));
+                }
+                if let Some(summary) = context.analysis.diff.semantic_summary() {
+                    prompt.push_str(&format!("  Semantic diff: {summary}\n"));
+                }
+                if let Some(files) = context.analysis.diff.top_files_summary(5) {
+                    prompt.push_str(&format!(
+                        "  Most affected files: {}\n",
+                        compact_text(&files, 240)
+                    ));
+                }
+                if let Some(symbols) = context.analysis.diff.changed_symbols_summary(6) {
+                    prompt.push_str(&format!(
+                        "  Symbols touched: {}\n",
+                        compact_text(&symbols, 240)
+                    ));
+                }
+                if let Some(imports) = context.analysis.diff.import_summary(4) {
+                    prompt.push_str(&format!(
+                        "  Import changes: {}\n",
+                        compact_text(&imports, 240)
+                    ));
+                }
+            }
             if !context.files.is_empty() {
                 prompt.push_str(&format!(
                     "  Files changed: {}\n",
@@ -258,10 +315,10 @@ fn build_prompt(file: &str, history: &[HistoryEntry]) -> String {
                     compact_join(&context.commands, 6)
                 ));
             }
-            if !context.environment.trim().is_empty() {
+            if !context.environment.is_empty() {
                 prompt.push_str(&format!(
                     "  Environment: {}\n",
-                    compact_text(&context.environment.replace('\n', " | "), 240)
+                    compact_text(&context.environment.to_prompt_string(), 240)
                 ));
             }
         }
@@ -314,20 +371,41 @@ fn heuristic_explanation(file: &str, history: &[HistoryEntry]) -> String {
         explanation.push('.');
     }
 
-    if let Some(command_hint) = command_hint {
-        explanation.push_str(&format!(
-            " Captured developer activity around that commit included {}.",
-            command_hint
-        ));
-    }
-
     if let Some(context) = &latest.context {
+        if context.analysis.intent.category != ChangeCategory::Unknown {
+            explanation.push_str(&format!(
+                " The captured intent for the latest commit looks like a {} change with {} urgency.",
+                context.analysis.intent.category, context.analysis.intent.urgency
+            ));
+        }
+        if let Some(summary) = context.analysis.diff.summary() {
+            explanation.push_str(&format!(" The change footprint was {}.", summary));
+        }
+        if let Some(summary) = context.analysis.diff.semantic_summary() {
+            explanation.push_str(&format!(" Semantically, it looks like {}.", summary));
+        }
+        if let Some(symbols) = context.analysis.diff.changed_symbols_summary(3) {
+            explanation.push_str(&format!(" The main symbols touched were {}.", symbols));
+        }
+        if let Some(imports) = context.analysis.diff.import_summary(2) {
+            explanation.push_str(&format!(
+                " Dependency-related changes included {}.",
+                imports
+            ));
+        }
         if !context.files.is_empty() {
             explanation.push_str(&format!(
                 " The commit also touched {}.",
                 compact_join(&context.files, 5)
             ));
         }
+    }
+
+    if let Some(command_hint) = command_hint {
+        explanation.push_str(&format!(
+            " Captured developer activity around that commit included {}.",
+            command_hint
+        ));
     }
 
     explanation
@@ -348,6 +426,7 @@ fn history_fingerprint(history: &[HistoryEntry]) -> String {
             context.commands.hash(&mut hasher);
             context.environment.hash(&mut hasher);
             context.files.hash(&mut hasher);
+            context.analysis.hash(&mut hasher);
         }
     }
 
@@ -359,6 +438,7 @@ fn try_cache_lookup(
     latest_commit_hash: &str,
     history_hash: &str,
     has_api_key: bool,
+    ai_model: &str,
 ) -> Option<CachedExplanation> {
     let path = cache_path_for_file(file);
     let raw = fs::read_to_string(path).ok()?;
@@ -372,10 +452,14 @@ fn try_cache_lookup(
     }
 
     if cache.source == "heuristic" && has_api_key {
-        None
-    } else {
-        Some(cache)
+        return None;
     }
+
+    if cache.source == "ai" && !cache.ai_model.is_empty() && cache.ai_model != ai_model {
+        return None;
+    }
+
+    Some(cache)
 }
 
 fn save_cache(
@@ -384,6 +468,7 @@ fn save_cache(
     history_hash: &str,
     explanation: &str,
     source: &str,
+    ai_model: &str,
 ) {
     let Ok(cache_dir) = crate::storage::cache_dir() else {
         return;
@@ -398,7 +483,7 @@ fn save_cache(
         source,
         last_commit_hash: latest_commit_hash,
         generated_at: chrono::Utc::now().to_rfc3339(),
-        ai_model: AI_MODEL,
+        ai_model,
         explanation,
         commit_history_hash: history_hash,
     };
@@ -500,10 +585,14 @@ fn compact_join(values: &[String], limit: usize) -> String {
 
 fn compact_text(input: &str, max_len: usize) -> String {
     let collapsed = input.split_whitespace().collect::<Vec<_>>().join(" ");
-    if collapsed.len() <= max_len {
+    let collapsed_len = collapsed.chars().count();
+    if collapsed_len <= max_len {
         collapsed
+    } else if max_len <= 3 {
+        ".".repeat(max_len)
     } else {
-        format!("{}...", &collapsed[..max_len.saturating_sub(3)])
+        let prefix = collapsed.chars().take(max_len - 3).collect::<String>();
+        format!("{prefix}...")
     }
 }
 

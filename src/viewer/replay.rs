@@ -13,7 +13,7 @@ pub fn replay_commit(commit: Option<&str>) {
     };
 
     println!("Replay for commit {}", context.commit);
-    if let Some(subject) = crate::git::commit_subject(&context.commit) {
+    if let Ok(subject) = crate::git::commit_subject(&context.commit) {
         println!("Subject: {}", subject);
     }
     println!("Timestamp: {}", context.timestamp);
@@ -27,10 +27,32 @@ pub fn replay_commit(commit: Option<&str>) {
         }
     }
 
-    if context.environment.trim().is_empty() {
+    if context.environment.is_empty() {
         println!("Environment: not captured");
     } else {
-        println!("Environment:\n{}", context.environment);
+        println!("Environment:\n{}", context.environment.to_display_string());
+    }
+
+    if context.analysis.is_empty() {
+        println!("Analysis: not captured");
+    } else {
+        println!("Analysis:");
+        println!("  Intent: {}", context.analysis.intent.summary());
+        if let Some(summary) = context.analysis.diff.summary() {
+            println!("  Diff: {}", summary);
+        }
+        if let Some(summary) = context.analysis.diff.semantic_summary() {
+            println!("  Semantic: {}", summary);
+        }
+        if let Some(files) = context.analysis.diff.top_files_summary(5) {
+            println!("  Top files: {files}");
+        }
+        if let Some(symbols) = context.analysis.diff.changed_symbols_summary(5) {
+            println!("  Symbols: {symbols}");
+        }
+        if let Some(imports) = context.analysis.diff.import_summary(3) {
+            println!("  Imports: {imports}");
+        }
     }
 
     if context.commands.is_empty() {

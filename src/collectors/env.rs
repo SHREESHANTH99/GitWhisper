@@ -1,10 +1,11 @@
 use crate::git;
+use crate::storage::context::{EnvironmentContext, ToolingContext};
 use std::env;
 use std::process::Command;
 
-pub fn collect_environment() -> String {
-    let os = env::consts::OS;
-    let branch = git::current_branch().unwrap_or_else(|| "unknown".to_string());
+pub fn collect_environment() -> EnvironmentContext {
+    let os = env::consts::OS.to_string();
+    let branch = git::current_branch().unwrap_or_else(|_| "unknown".to_string());
     let shell = env::var("SHELL")
         .or_else(|_| env::var("ComSpec"))
         .unwrap_or_else(|_| "unknown".to_string());
@@ -13,26 +14,19 @@ pub fn collect_environment() -> String {
         .map(|path| path.display().to_string())
         .unwrap_or_else(|| "unknown".to_string());
 
-    let lines = vec![
-        format!("OS: {os}"),
-        format!("Branch: {branch}"),
-        format!("Shell: {shell}"),
-        format!("Working Directory: {cwd}"),
-        format!(
-            "Node: {}",
-            version_for("node", &["-v"]).unwrap_or_else(|| "not installed".to_string())
-        ),
-        format!(
-            "Python: {}",
-            version_for("python", &["--version"]).unwrap_or_else(|| "not installed".to_string())
-        ),
-        format!(
-            "Rust: {}",
-            version_for("rustc", &["--version"]).unwrap_or_else(|| "not installed".to_string())
-        ),
-    ];
-
-    lines.join("\n")
+    EnvironmentContext {
+        os,
+        branch,
+        shell,
+        working_directory: cwd,
+        tools: ToolingContext {
+            node: version_for("node", &["-v"]).unwrap_or_else(|| "not installed".to_string()),
+            python: version_for("python", &["--version"])
+                .unwrap_or_else(|| "not installed".to_string()),
+            rust: version_for("rustc", &["--version"])
+                .unwrap_or_else(|| "not installed".to_string()),
+        },
+    }
 }
 
 fn version_for(command: &str, args: &[&str]) -> Option<String> {

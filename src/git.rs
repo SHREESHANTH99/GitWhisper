@@ -1,3 +1,4 @@
+use crate::error::{AppError, AppResult};
 use std::path::{Component, Path, PathBuf};
 use std::process::Command;
 
@@ -10,12 +11,18 @@ pub struct FileCommit {
     pub body: String,
 }
 
-pub fn repo_root() -> Result<PathBuf, String> {
+#[derive(Debug, Clone)]
+pub struct CommitMessage {
+    pub subject: String,
+    pub body: String,
+}
+
+pub fn repo_root() -> AppResult<PathBuf> {
     let output = run_git(&["rev-parse", "--show-toplevel"])?;
     Ok(PathBuf::from(output))
 }
 
-pub fn git_dir() -> Result<PathBuf, String> {
+pub fn git_dir() -> AppResult<PathBuf> {
     let root = repo_root()?;
     let output = run_git(&["rev-parse", "--git-dir"])?;
     let git_dir = PathBuf::from(output);
@@ -27,19 +34,29 @@ pub fn git_dir() -> Result<PathBuf, String> {
     }
 }
 
-pub fn short_commit_hash() -> Option<String> {
-    run_git(&["rev-parse", "--short=7", "HEAD"]).ok()
+pub fn short_commit_hash() -> AppResult<String> {
+    run_git(&["rev-parse", "--short=7", "HEAD"])
 }
 
-pub fn current_branch() -> Option<String> {
-    run_git(&["rev-parse", "--abbrev-ref", "HEAD"]).ok()
+pub fn current_branch() -> AppResult<String> {
+    run_git(&["rev-parse", "--abbrev-ref", "HEAD"])
 }
 
-pub fn commit_subject(commit: &str) -> Option<String> {
-    run_git(&["show", "-s", "--format=%s", commit]).ok()
+pub fn commit_subject(commit: &str) -> AppResult<String> {
+    Ok(commit_message(commit)?.subject)
 }
 
-pub fn changed_files_for_commit(commit: &str) -> Result<Vec<String>, String> {
+pub fn commit_message(commit: &str) -> AppResult<CommitMessage> {
+    let output = run_git(&["show", "-s", "--format=%s%x1f%b", commit])?;
+    let (subject, body) = output.split_once('\u{1f}').unwrap_or((output.as_str(), ""));
+
+    Ok(CommitMessage {
+        subject: subject.trim().to_string(),
+        body: body.trim().to_string(),
+    })
+}
+
+pub fn changed_files_for_commit(commit: &str) -> AppResult<Vec<String>> {
     let output = run_git(&["show", "--pretty=format:", "--name-only", commit, "--"])?;
     Ok(output
         .lines()
@@ -49,7 +66,20 @@ pub fn changed_files_for_commit(commit: &str) -> Result<Vec<String>, String> {
         .collect())
 }
 
-pub fn file_history(file: &str, limit: usize) -> Result<Vec<FileCommit>, String> {
+pub fn commit_patch(commit: &str) -> AppResult<String> {
+    run_git(&[
+        "show",
+        "--find-renames",
+        "--find-copies",
+        "--format=",
+        "--patch",
+        "--unified=0",
+        commit,
+        "--",
+    ])
+}
+
+pub fn file_history(file: &str, limit: usize) -> AppResult<Vec<FileCommit>> {
     let normalized = normalize_repo_path(file)?;
     let format = "%H%x1f%h%x1f%cI%x1f%s%x1f%b%x1e";
     let max_count = format!("--max-count={limit}");
@@ -65,14 +95,14 @@ pub fn file_history(file: &str, limit: usize) -> Result<Vec<FileCommit>, String>
     Ok(parse_history(&output))
 }
 
-pub fn normalize_repo_path(path: &str) -> Result<String, String> {
+pub fn normalize_repo_path(path: &str) -> AppResult<String> {
     let root = repo_root()?;
     let provided = PathBuf::from(path);
     let relative = if provided.is_absolute() {
         provided
             .strip_prefix(&root)
             .map(Path::to_path_buf)
-            .unwrap_or(provided)
+            .map_err(|_| AppError::message("Please provide a file path inside the repository."))?
     } else {
         provided
     };
@@ -92,7 +122,9 @@ pub fn normalize_repo_path(path: &str) -> Result<String, String> {
 
     let normalized = parts.join("/");
     if normalized.is_empty() {
-        Err("Please provide a file path inside the repository.".to_string())
+        Err(AppError::message(
+            "Please provide a file path inside the repository.",
+        ))
     } else {
         Ok(normalized)
     }
@@ -118,15 +150,16 @@ fn parse_history(raw: &str) -> Vec<FileCommit> {
         .collect()
 }
 
-fn run_git(args: &[&str]) -> Result<String, String> {
-    let output = Command::new("git")
-        .args(args)
-        .output()
-        .map_err(|error| format!("Failed to run git {}: {}", args.join(" "), error))?;
+fn run_git(args: &[&str]) -> AppResult<String> {
+    let output = Command::new("git").args(args).output().map_err(|error| {
+        AppError::Git(format!("Failed to run git {}: {}", args.join(" "), error))
+    })?;
 
     if output.status.success() {
         Ok(String::from_utf8_lossy(&output.stdout).trim().to_string())
     } else {
-        Err(String::from_utf8_lossy(&output.stderr).trim().to_string())
+        Err(AppError::Git(
+            String::from_utf8_lossy(&output.stderr).trim().to_string(),
+        ))
     }
 }

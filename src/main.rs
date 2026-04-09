@@ -1,6 +1,9 @@
+mod analysis;
 mod capture;
 mod cli;
 mod collectors;
+mod config;
+mod error;
 mod git;
 mod hooks;
 mod storage;

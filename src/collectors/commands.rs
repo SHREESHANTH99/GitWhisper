@@ -3,8 +3,6 @@ use std::collections::HashSet;
 use std::fs;
 use std::path::PathBuf;
 
-const DEFAULT_COMMAND_LIMIT: usize = 25;
-
 pub fn recent_commands(limit: usize) -> Vec<String> {
     let Some(home) = home_dir() else {
         return Vec::new();
@@ -20,10 +18,6 @@ pub fn recent_commands(limit: usize) -> Vec<String> {
     }
 
     dedupe_and_trim(combined, limit)
-}
-
-pub fn default_recent_commands() -> Vec<String> {
-    recent_commands(DEFAULT_COMMAND_LIMIT)
 }
 
 pub(crate) fn sanitize_command(command: &str) -> String {

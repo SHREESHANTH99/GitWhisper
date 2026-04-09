@@ -1,0 +1,14 @@
+[ai]
+model = "gemini-1.5-flash"
+history_depth = 10
+request_timeout_secs = 45
+
+[capture]
+command_limit = 25
+include_environment = true
+include_analysis = true
+
+[privacy]
+offline_mode = false
+local_cache_only = true
+exclude_files = []
