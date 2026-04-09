@@ -1,4 +1,6 @@
+pub mod behavior_patterns;
 pub mod diff_parser;
+pub mod impact_analysis;
 pub mod intent_detection;
 
 use serde::{Deserialize, Serialize};
@@ -9,6 +11,7 @@ use std::fmt::{Display, Formatter};
 pub struct CommitAnalysis {
     pub intent: IntentClassification,
     pub diff: DiffSummary,
+    pub impact: ImpactSummary,
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize, Default, PartialEq, Eq, Hash)]
@@ -16,7 +19,12 @@ pub struct CommitAnalysis {
 pub struct IntentClassification {
     pub category: ChangeCategory,
     pub urgency: UrgencyLevel,
+    pub risk: RiskLevel,
     pub scope: ChangeScope,
+    pub conventional_type: String,
+    pub conventional_scope: String,
+    pub breaking_change: bool,
+    pub signals: Vec<String>,
     pub confidence: u8,
 }
 
@@ -34,6 +42,15 @@ pub struct DiffSummary {
     pub import_changes: Vec<ImportChange>,
     pub symbol_changes: Vec<SymbolChange>,
     pub file_stats: Vec<FileDiffStat>,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize, Default, PartialEq, Eq, Hash)]
+#[serde(default)]
+pub struct ImpactSummary {
+    pub impact_score: u32,
+    pub direct_dependents: Vec<String>,
+    pub transitive_dependents: Vec<String>,
+    pub circular_dependencies: Vec<Vec<String>>,
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize, Default, PartialEq, Eq, Hash)]
@@ -105,6 +122,16 @@ pub enum ChangeScope {
 
 #[derive(Debug, Clone, Serialize, Deserialize, Default, PartialEq, Eq, Hash)]
 #[serde(rename_all = "kebab-case")]
+pub enum RiskLevel {
+    Low,
+    #[default]
+    Medium,
+    High,
+    Critical,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize, Default, PartialEq, Eq, Hash)]
+#[serde(rename_all = "kebab-case")]
 pub enum FileOperation {
     Added,
     Deleted,
@@ -135,16 +162,53 @@ pub enum SymbolKind {
 
 impl CommitAnalysis {
     pub fn is_empty(&self) -> bool {
-        self.intent.category == ChangeCategory::Unknown && self.diff.files_changed == 0
+        self.intent.category == ChangeCategory::Unknown
+            && self.diff.files_changed == 0
+            && self.impact.impact_score == 0
     }
 }
 
 impl IntentClassification {
     pub fn summary(&self) -> String {
-        format!(
-            "{} | {} urgency | {} scope | {}% confidence",
-            self.category, self.urgency, self.scope, self.confidence
-        )
+        let mut parts = vec![
+            self.category.to_string(),
+            format!("{} urgency", self.urgency),
+            format!("{} risk", self.risk),
+            format!("{} scope", self.scope),
+        ];
+
+        if !self.conventional_type.is_empty() {
+            if self.conventional_scope.is_empty() {
+                parts.push(format!("conventional `{}`", self.conventional_type));
+            } else {
+                parts.push(format!(
+                    "conventional `{}({})`",
+                    self.conventional_type, self.conventional_scope
+                ));
+            }
+        }
+
+        if self.breaking_change {
+            parts.push("breaking-change".to_string());
+        }
+
+        parts.push(format!("{}% confidence", self.confidence));
+        parts.join(" | ")
+    }
+
+    pub fn signals_summary(&self, limit: usize) -> Option<String> {
+        if self.signals.is_empty() {
+            None
+        } else {
+            Some(
+                self.signals
+                    .iter()
+                    .take(limit)
+                    .cloned()
+                    .collect::<Vec<_>>()
+                    .join(", "),
+            )
+        }
     }
 }
 
@@ -269,6 +333,48 @@ impl DiffSummary {
     }
 }
 
+impl ImpactSummary {
+    pub fn summary(&self) -> Option<String> {
+        if self.impact_score == 0
+            && self.direct_dependents.is_empty()
+            && self.transitive_dependents.is_empty()
+        {
+            None
+        } else {
+            Some(format!(
+                "impact score {} | {} direct | {} transitive",
+                self.impact_score,
+                self.direct_dependents.len(),
+                self.transitive_dependents.len()
+            ))
+        }
+    }
+
+    pub fn top_direct_summary(&self, limit: usize) -> Option<String> {
+        summarize_paths(&self.direct_dependents, limit)
+    }
+
+    pub fn top_transitive_summary(&self, limit: usize) -> Option<String> {
+        summarize_paths(&self.transitive_dependents, limit)
+    }
+
+    pub fn circular_summary(&self, limit: usize) -> Option<String> {
+        if self.circular_dependencies.is_empty() {
+            return None;
+        }
+
+        let summary = self
+            .circular_dependencies
+            .iter()
+            .take(limit)
+            .map(|cycle| cycle.join(" -> "))
+            .collect::<Vec<_>>()
+            .join("; ");
+
+        Some(summary)
+    }
+}
+
 impl Display for ChangeCategory {
     fn fmt(&self, formatter: &mut Formatter<'_>) -> std::fmt::Result {
         let label = match self {
@@ -313,6 +419,19 @@ impl Display for ChangeScope {
     }
 }
 
+impl Display for RiskLevel {
+    fn fmt(&self, formatter: &mut Formatter<'_>) -> std::fmt::Result {
+        let label = match self {
+            Self::Low => "low",
+            Self::Medium => "medium",
+            Self::High => "high",
+            Self::Critical => "critical",
+        };
+
+        write!(formatter, "{label}")
+    }
+}
+
 impl Display for FileOperation {
     fn fmt(&self, formatter: &mut Formatter<'_>) -> std::fmt::Result {
         let label = match self {
@@ -349,5 +468,20 @@ impl Display for SymbolKind {
         };
 
         write!(formatter, "{label}")
+    }
+}
+
+fn summarize_paths(paths: &[String], limit: usize) -> Option<String> {
+    if paths.is_empty() {
+        None
+    } else {
+        Some(
+            paths
+                .iter()
+                .take(limit)
+                .cloned()
+                .collect::<Vec<_>>()
+                .join(", "),
+        )
     }
 }

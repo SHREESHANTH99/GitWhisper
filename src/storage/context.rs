@@ -12,6 +12,9 @@ pub struct CommitContext {
     pub commands: Vec<String>,
     #[serde(deserialize_with = "deserialize_environment")]
     pub environment: EnvironmentContext,
+    pub ide: IdeContext,
+    pub review: ReviewContext,
+    pub behavior: BehaviorSnapshot,
     pub files: Vec<String>,
     pub analysis: CommitAnalysis,
 }
@@ -32,6 +35,60 @@ pub struct ToolingContext {
     pub node: String,
     pub python: String,
     pub rust: String,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize, Default, PartialEq, Eq, Hash)]
+#[serde(default)]
+pub struct IdeContext {
+    pub name: String,
+    pub process: String,
+    pub version: String,
+    pub build_system: String,
+    pub extensions: Vec<String>,
+    pub active_files: Vec<String>,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize, Default, PartialEq, Eq, Hash)]
+#[serde(default)]
+pub struct ReviewContext {
+    pub ci_provider: String,
+    pub pr_number: String,
+    pub reviewers: Vec<String>,
+    pub labels: Vec<String>,
+    pub milestone: String,
+    pub test_status: String,
+    pub tests_run: usize,
+    pub tests_failed: usize,
+    pub coverage_percent: Option<u8>,
+    pub source: String,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize, Default, PartialEq, Eq, Hash)]
+#[serde(default)]
+pub struct BehaviorSnapshot {
+    pub author: String,
+    pub commits_last_7d: usize,
+    pub commits_last_30d: usize,
+    pub late_night_ratio: u8,
+    pub typical_work_hours: String,
+    pub burnout_risk: BurnoutRisk,
+    pub expertise: Vec<FileExpertise>,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize, Default, PartialEq, Eq, Hash)]
+#[serde(default)]
+pub struct FileExpertise {
+    pub path: String,
+    pub commit_count: usize,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize, Default, PartialEq, Eq, Hash)]
+#[serde(rename_all = "kebab-case")]
+pub enum BurnoutRisk {
+    #[default]
+    Normal,
+    Watch,
+    Elevated,
 }
 
 impl EnvironmentContext {
@@ -94,8 +151,103 @@ impl EnvironmentContext {
     }
 }
 
+impl IdeContext {
+    pub fn is_empty(&self) -> bool {
+        self.name.trim().is_empty()
+            && self.process.trim().is_empty()
+            && self.build_system.trim().is_empty()
+            && self.extensions.is_empty()
+            && self.active_files.is_empty()
+    }
+
+    pub fn summary(&self) -> Option<String> {
+        if self.is_empty() {
+            None
+        } else {
+            let mut parts = Vec::new();
+            if !self.name.trim().is_empty() {
+                parts.push(self.name.clone());
+            }
+            if !self.build_system.trim().is_empty() {
+                parts.push(format!("build {}", self.build_system));
+            }
+            if !self.active_files.is_empty() {
+                parts.push(format!("{} active files", self.active_files.len()));
+            }
+            Some(parts.join(" | "))
+        }
+    }
+}
+
+impl ReviewContext {
+    pub fn is_empty(&self) -> bool {
+        self.ci_provider.trim().is_empty()
+            && self.pr_number.trim().is_empty()
+            && self.reviewers.is_empty()
+            && self.labels.is_empty()
+            && self.test_status.trim().is_empty()
+            && self.coverage_percent.is_none()
+    }
+
+    pub fn summary(&self) -> Option<String> {
+        if self.is_empty() {
+            None
+        } else {
+            let mut parts = Vec::new();
+            if !self.ci_provider.trim().is_empty() {
+                parts.push(self.ci_provider.clone());
+            }
+            if !self.pr_number.trim().is_empty() {
+                parts.push(format!("PR {}", self.pr_number));
+            }
+            if !self.test_status.trim().is_empty() {
+                parts.push(format!("tests {}", self.test_status));
+            }
+            if let Some(coverage) = self.coverage_percent {
+                parts.push(format!("coverage {}%", coverage));
+            }
+            Some(parts.join(" | "))
+        }
+    }
+}
+
+impl BehaviorSnapshot {
+    pub fn is_empty(&self) -> bool {
+        self.author.trim().is_empty()
+            && self.commits_last_7d == 0
+            && self.commits_last_30d == 0
+            && self.expertise.is_empty()
+    }
+
+    pub fn summary(&self) -> Option<String> {
+        if self.is_empty() {
+            None
+        } else {
+            Some(format!(
+                "{} commits/7d, {} commits/30d, burnout {}",
+                self.commits_last_7d, self.commits_last_30d, self.burnout_risk
+            ))
+        }
+    }
+
+    pub fn expertise_summary(&self, limit: usize) -> Option<String> {
+        if self.expertise.is_empty() {
+            None
+        } else {
+            Some(
+                self.expertise
+                    .iter()
+                    .take(limit)
+                    .map(|entry| format!("{} ({})", entry.path, entry.commit_count))
+                    .collect::<Vec<_>>()
+                    .join(", "),
+            )
+        }
+    }
+}
+
 fn default_schema_version() -> u32 {
-    2
+    3
 }
 
 fn push_if_present(lines: &mut Vec<String>, label: &str, value: &str) {
@@ -122,6 +274,18 @@ where
     }
 }
 
+impl std::fmt::Display for BurnoutRisk {
+    fn fmt(&self, formatter: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        let label = match self {
+            Self::Normal => "normal",
+            Self::Watch => "watch",
+            Self::Elevated => "elevated",
+        };
+
+        write!(formatter, "{label}")
+    }
+}
+
 #[cfg(test)]
 mod tests {
     use super::CommitContext;
@@ -139,9 +303,12 @@ mod tests {
         let context: CommitContext =
             serde_json::from_str(raw).expect("legacy context should deserialize");
 
-        assert_eq!(context.schema_version, 2);
+        assert_eq!(context.schema_version, 3);
         assert_eq!(context.environment.os, "windows");
         assert_eq!(context.environment.branch, "main");
         assert_eq!(context.environment.tools.node, "v22.14.0");
+        assert!(context.ide.is_empty());
+        assert!(context.review.is_empty());
+        assert!(context.behavior.is_empty());
     }
 }

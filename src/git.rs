@@ -17,6 +17,12 @@ pub struct CommitMessage {
     pub body: String,
 }
 
+#[derive(Debug, Clone)]
+pub struct AuthorCommitRecord {
+    pub timestamp: String,
+    pub files: Vec<String>,
+}
+
 pub fn repo_root() -> AppResult<PathBuf> {
     let output = run_git(&["rev-parse", "--show-toplevel"])?;
     Ok(PathBuf::from(output))
@@ -46,6 +52,14 @@ pub fn commit_subject(commit: &str) -> AppResult<String> {
     Ok(commit_message(commit)?.subject)
 }
 
+pub fn commit_author_email(commit: &str) -> AppResult<String> {
+    run_git(&["show", "-s", "--format=%ae", commit])
+}
+
+pub fn commit_author_name(commit: &str) -> AppResult<String> {
+    run_git(&["show", "-s", "--format=%an", commit])
+}
+
 pub fn commit_message(commit: &str) -> AppResult<CommitMessage> {
     let output = run_git(&["show", "-s", "--format=%s%x1f%b", commit])?;
     let (subject, body) = output.split_once('\u{1f}').unwrap_or((output.as_str(), ""));
@@ -54,6 +68,21 @@ pub fn commit_message(commit: &str) -> AppResult<CommitMessage> {
         subject: subject.trim().to_string(),
         body: body.trim().to_string(),
     })
+}
+
+pub fn author_history(author_email: &str, max_count: usize) -> AppResult<Vec<AuthorCommitRecord>> {
+    let author_arg = format!("--author={author_email}");
+    let max_count_arg = format!("--max-count={max_count}");
+    let output = run_git(&[
+        "log",
+        "--all",
+        &author_arg,
+        &max_count_arg,
+        "--format=%cI%x1e",
+        "--name-only",
+    ])?;
+
+    Ok(parse_author_history(&output))
 }
 
 pub fn changed_files_for_commit(commit: &str) -> AppResult<Vec<String>> {
@@ -146,6 +175,27 @@ fn parse_history(raw: &str) -> Vec<FileCommit> {
                 subject: fields.next()?.trim().to_string(),
                 body: fields.next().unwrap_or_default().trim().to_string(),
             })
+        })
+        .collect()
+}
+
+fn parse_author_history(raw: &str) -> Vec<AuthorCommitRecord> {
+    raw.split('\u{1e}')
+        .filter_map(|record| {
+            let trimmed = record.trim();
+            if trimmed.is_empty() {
+                return None;
+            }
+
+            let mut lines = trimmed.lines();
+            let timestamp = lines.next()?.trim().to_string();
+            let files = lines
+                .map(str::trim)
+                .filter(|line| !line.is_empty())
+                .map(|line| line.replace('\\', "/"))
+                .collect::<Vec<_>>();
+
+            Some(AuthorCommitRecord { timestamp, files })
         })
         .collect()
 }

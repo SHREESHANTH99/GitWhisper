@@ -23,25 +23,35 @@ pub fn capture_context() {
     } else {
         crate::storage::context::EnvironmentContext::default()
     };
+    let ide = crate::collectors::ide::collect_ide_context(&files);
+    let review = crate::collectors::review_context::collect_review_context(&commands);
+    let behavior = crate::analysis::behavior_patterns::analyze_author_patterns(&commit, &files)
+        .unwrap_or_default();
     let analysis = if config.capture.include_analysis {
-        let message = crate::git::commit_message(&commit)
-            .map(|message| {
-                if message.body.trim().is_empty() {
-                    message.subject
-                } else {
-                    format!("{} {}", message.subject, message.body)
-                }
-            })
-            .unwrap_or_default();
+        let commit_message =
+            crate::git::commit_message(&commit).unwrap_or_else(|_| crate::git::CommitMessage {
+                subject: String::new(),
+                body: String::new(),
+            });
         let diff = crate::analysis::diff_parser::summarize_commit(&commit).unwrap_or_default();
-        let files_changed = diff.files_changed.max(files.len());
+        let diff = if diff.files_changed == 0 && !files.is_empty() {
+            let mut adjusted = diff;
+            adjusted.files_changed = files.len();
+            adjusted
+        } else {
+            diff
+        };
+        let impact =
+            crate::analysis::impact_analysis::analyze_impact(&files, &diff).unwrap_or_default();
 
         crate::analysis::CommitAnalysis {
-            intent: crate::analysis::intent_detection::classify_commit_message(
-                &message,
-                files_changed,
+            intent: crate::analysis::intent_detection::classify_commit_intent(
+                &commit_message.subject,
+                &commit_message.body,
+                &diff,
             ),
             diff,
+            impact,
         }
     } else {
         crate::analysis::CommitAnalysis::default()
@@ -53,6 +63,9 @@ pub fn capture_context() {
         timestamp,
         commands,
         environment,
+        ide,
+        review,
+        behavior,
         files,
         analysis,
     };

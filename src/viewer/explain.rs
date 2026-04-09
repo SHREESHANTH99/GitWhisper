@@ -2,13 +2,12 @@ use crate::analysis::ChangeCategory;
 use crate::git::FileCommit;
 use crate::storage::context::CommitContext;
 use reqwest::blocking::Client;
-use serde::{Deserialize, Serialize};
+use serde::Deserialize;
 use serde_json::json;
 use std::collections::hash_map::DefaultHasher;
 use std::fs;
 use std::hash::{Hash, Hasher};
 use std::io::Write;
-use std::path::{Path, PathBuf};
 use std::time::{Duration, Instant};
 
 #[derive(Debug, Clone)]
@@ -19,24 +18,11 @@ struct HistoryEntry {
 
 #[derive(Debug, Deserialize)]
 struct CachedExplanation {
-    #[serde(default = "default_cache_source")]
     source: String,
-    #[serde(default)]
     ai_model: String,
     last_commit_hash: String,
     commit_history_hash: String,
     explanation: String,
-}
-
-#[derive(Debug, Serialize)]
-struct ExplanationCacheEntry<'a> {
-    file: &'a str,
-    source: &'a str,
-    last_commit_hash: &'a str,
-    generated_at: String,
-    ai_model: &'a str,
-    explanation: &'a str,
-    commit_history_hash: &'a str,
 }
 
 pub fn explain_file(file: &str, api_key: &str) {
@@ -76,6 +62,17 @@ pub fn explain_file(file: &str, api_key: &str) {
         return;
     }
 
+    let historical_contexts = history
+        .iter()
+        .filter_map(|entry| entry.context.clone())
+        .collect::<Vec<_>>();
+    let predicted_files = crate::storage::predictive_cache::predict_related_files(
+        &normalized_file,
+        history[0].context.as_ref(),
+        &historical_contexts,
+        5,
+    );
+
     let latest_commit_hash = history[0].commit.hash.clone();
     let history_hash = history_fingerprint(&history);
     let ai_enabled = !api_key.is_empty() && !config.privacy.offline_mode;
@@ -94,11 +91,12 @@ pub fn explain_file(file: &str, api_key: &str) {
         };
         println!("Using cached {} for {}\n", cache.source, normalized_file);
         println!("{heading}:\n{}", cache.explanation);
+        print_related_files(&predicted_files);
         log_ai_event(&normalized_file, true, None, None, &cache.source);
         return;
     }
 
-    let fallback = heuristic_explanation(&normalized_file, &history);
+    let fallback = heuristic_explanation(&normalized_file, &history, &predicted_files);
     if !ai_enabled {
         println!("Explanation:\n{}", fallback);
         save_cache(
@@ -108,7 +106,9 @@ pub fn explain_file(file: &str, api_key: &str) {
             &fallback,
             "heuristic",
             ai_model,
+            &predicted_files,
         );
+        print_related_files(&predicted_files);
         let reason = if config.privacy.offline_mode {
             "offline_mode_enabled"
         } else {
@@ -119,7 +119,7 @@ pub fn explain_file(file: &str, api_key: &str) {
     }
 
     println!("Generating AI explanation for {}...\n", normalized_file);
-    let prompt = build_prompt(&normalized_file, &history);
+    let prompt = build_prompt(&normalized_file, &history, &predicted_files);
     let client = match Client::builder()
         .timeout(Duration::from_secs(config.ai.request_timeout_secs.max(1)))
         .build()
@@ -171,6 +171,7 @@ pub fn explain_file(file: &str, api_key: &str) {
                     &fallback,
                     "heuristic",
                     ai_model,
+                    &predicted_files,
                 );
                 log_ai_event(
                     &normalized_file,
@@ -184,6 +185,7 @@ pub fn explain_file(file: &str, api_key: &str) {
 
             if let Some(text) = extract_text(&json_response) {
                 println!("AI Explanation:\n{}", text);
+                print_related_files(&predicted_files);
                 save_cache(
                     &normalized_file,
                     &latest_commit_hash,
@@ -191,6 +193,7 @@ pub fn explain_file(file: &str, api_key: &str) {
                     text,
                     "ai",
                     ai_model,
+                    &predicted_files,
                 );
                 log_ai_event(&normalized_file, false, Some(elapsed), None, "ai");
             } else {
@@ -203,6 +206,7 @@ pub fn explain_file(file: &str, api_key: &str) {
                     &fallback,
                     "heuristic",
                     ai_model,
+                    &predicted_files,
                 );
                 log_ai_event(
                     &normalized_file,
@@ -223,6 +227,7 @@ pub fn explain_file(file: &str, api_key: &str) {
                 &fallback,
                 "heuristic",
                 ai_model,
+                &predicted_files,
             );
             log_ai_event(
                 &normalized_file,
@@ -251,7 +256,7 @@ fn load_history_for_file(
     Ok(entries)
 }
 
-fn build_prompt(file: &str, history: &[HistoryEntry]) -> String {
+fn build_prompt(file: &str, history: &[HistoryEntry], predicted_files: &[String]) -> String {
     let mut prompt = String::new();
     prompt.push_str("You are helping a developer understand why a file changed over time.\n");
     prompt.push_str("Focus on intent, problem solved, and the evolution of the file.\n");
@@ -278,11 +283,20 @@ fn build_prompt(file: &str, history: &[HistoryEntry]) -> String {
                     "  Detected intent: {}\n",
                     context.analysis.intent.summary()
                 ));
+                if let Some(signals) = context.analysis.intent.signals_summary(5) {
+                    prompt.push_str(&format!(
+                        "  Intent signals: {}\n",
+                        compact_text(&signals, 240)
+                    ));
+                }
                 if let Some(summary) = context.analysis.diff.summary() {
                     prompt.push_str(&format!("  Diff summary: {summary}\n"));
                 }
                 if let Some(summary) = context.analysis.diff.semantic_summary() {
                     prompt.push_str(&format!("  Semantic diff: {summary}\n"));
+                }
+                if let Some(summary) = context.analysis.impact.summary() {
+                    prompt.push_str(&format!("  Impact summary: {summary}\n"));
                 }
                 if let Some(files) = context.analysis.diff.top_files_summary(5) {
                     prompt.push_str(&format!(
@@ -300,6 +314,18 @@ fn build_prompt(file: &str, history: &[HistoryEntry]) -> String {
                     prompt.push_str(&format!(
                         "  Import changes: {}\n",
                         compact_text(&imports, 240)
+                    ));
+                }
+                if let Some(dependents) = context.analysis.impact.top_direct_summary(4) {
+                    prompt.push_str(&format!(
+                        "  Direct dependents: {}\n",
+                        compact_text(&dependents, 240)
+                    ));
+                }
+                if let Some(cycles) = context.analysis.impact.circular_summary(2) {
+                    prompt.push_str(&format!(
+                        "  Circular dependencies: {}\n",
+                        compact_text(&cycles, 240)
                     ));
                 }
             }
@@ -321,7 +347,29 @@ fn build_prompt(file: &str, history: &[HistoryEntry]) -> String {
                     compact_text(&context.environment.to_prompt_string(), 240)
                 ));
             }
+            if let Some(summary) = context.ide.summary() {
+                prompt.push_str(&format!("  IDE context: {}\n", compact_text(&summary, 240)));
+            }
+            if let Some(summary) = context.review.summary() {
+                prompt.push_str(&format!(
+                    "  Review context: {}\n",
+                    compact_text(&summary, 240)
+                ));
+            }
+            if let Some(summary) = context.behavior.summary() {
+                prompt.push_str(&format!(
+                    "  Developer behavior: {}\n",
+                    compact_text(&summary, 240)
+                ));
+            }
         }
+    }
+
+    if !predicted_files.is_empty() {
+        prompt.push_str(&format!(
+            "\nRelated files likely to matter next: {}\n",
+            compact_join(predicted_files, 5)
+        ));
     }
 
     prompt.push_str(
@@ -330,7 +378,11 @@ fn build_prompt(file: &str, history: &[HistoryEntry]) -> String {
     prompt
 }
 
-fn heuristic_explanation(file: &str, history: &[HistoryEntry]) -> String {
+fn heuristic_explanation(
+    file: &str,
+    history: &[HistoryEntry],
+    predicted_files: &[String],
+) -> String {
     let latest = &history[0];
     let earlier_subjects = history
         .iter()
@@ -374,15 +426,21 @@ fn heuristic_explanation(file: &str, history: &[HistoryEntry]) -> String {
     if let Some(context) = &latest.context {
         if context.analysis.intent.category != ChangeCategory::Unknown {
             explanation.push_str(&format!(
-                " The captured intent for the latest commit looks like a {} change with {} urgency.",
-                context.analysis.intent.category, context.analysis.intent.urgency
+                " The captured intent for the latest commit looks like a {} change with {} urgency and {} risk.",
+                context.analysis.intent.category, context.analysis.intent.urgency, context.analysis.intent.risk
             ));
+        }
+        if let Some(signals) = context.analysis.intent.signals_summary(3) {
+            explanation.push_str(&format!(" Intent clues included {}.", signals));
         }
         if let Some(summary) = context.analysis.diff.summary() {
             explanation.push_str(&format!(" The change footprint was {}.", summary));
         }
         if let Some(summary) = context.analysis.diff.semantic_summary() {
             explanation.push_str(&format!(" Semantically, it looks like {}.", summary));
+        }
+        if let Some(summary) = context.analysis.impact.summary() {
+            explanation.push_str(&format!(" The broader impact looks like {}.", summary));
         }
         if let Some(symbols) = context.analysis.diff.changed_symbols_summary(3) {
             explanation.push_str(&format!(" The main symbols touched were {}.", symbols));
@@ -399,12 +457,25 @@ fn heuristic_explanation(file: &str, history: &[HistoryEntry]) -> String {
                 compact_join(&context.files, 5)
             ));
         }
+        if let Some(review) = context.review.summary() {
+            explanation.push_str(&format!(" Review context suggests {}.", review));
+        }
+        if let Some(behavior) = context.behavior.summary() {
+            explanation.push_str(&format!(" Developer history shows {}.", behavior));
+        }
     }
 
     if let Some(command_hint) = command_hint {
         explanation.push_str(&format!(
             " Captured developer activity around that commit included {}.",
             command_hint
+        ));
+    }
+
+    if !predicted_files.is_empty() {
+        explanation.push_str(&format!(
+            " Related files likely worth checking next include {}.",
+            compact_join(predicted_files, 3)
         ));
     }
 
@@ -425,6 +496,9 @@ fn history_fingerprint(history: &[HistoryEntry]) -> String {
             context.timestamp.hash(&mut hasher);
             context.commands.hash(&mut hasher);
             context.environment.hash(&mut hasher);
+            context.ide.hash(&mut hasher);
+            context.review.hash(&mut hasher);
+            context.behavior.hash(&mut hasher);
             context.files.hash(&mut hasher);
             context.analysis.hash(&mut hasher);
         }
@@ -440,9 +514,16 @@ fn try_cache_lookup(
     has_api_key: bool,
     ai_model: &str,
 ) -> Option<CachedExplanation> {
-    let path = cache_path_for_file(file);
-    let raw = fs::read_to_string(path).ok()?;
-    let cache = serde_json::from_str::<CachedExplanation>(&raw).ok()?;
+    let cache_id =
+        crate::storage::cache_manager::cache_key(file, latest_commit_hash, history_hash, ai_model);
+    let record = crate::storage::cache_manager::get_explanation(&cache_id)?;
+    let cache = CachedExplanation {
+        source: record.source,
+        ai_model: record.ai_model,
+        last_commit_hash: record.commit_hash,
+        commit_history_hash: record.commit_history_hash,
+        explanation: record.explanation,
+    };
 
     let matches_history =
         cache.last_commit_hash == latest_commit_hash && cache.commit_history_hash == history_hash;
@@ -469,55 +550,27 @@ fn save_cache(
     explanation: &str,
     source: &str,
     ai_model: &str,
+    predicted_files: &[String],
 ) {
-    let Ok(cache_dir) = crate::storage::cache_dir() else {
-        return;
+    let id =
+        crate::storage::cache_manager::cache_key(file, latest_commit_hash, history_hash, ai_model);
+    let record = crate::storage::cache_manager::ExplanationCacheRecord {
+        id,
+        commit_hash: latest_commit_hash.to_string(),
+        file_path: file.to_string(),
+        explanation: explanation.to_string(),
+        metadata: json!({
+            "predictive_candidates": predicted_files,
+        }),
+        source: source.to_string(),
+        ai_model: ai_model.to_string(),
+        commit_history_hash: history_hash.to_string(),
+        created_at: chrono::Utc::now().to_rfc3339(),
+        last_accessed: String::new(),
+        access_count: 0,
     };
 
-    if fs::create_dir_all(&cache_dir).is_err() {
-        return;
-    }
-
-    let entry = ExplanationCacheEntry {
-        file,
-        source,
-        last_commit_hash: latest_commit_hash,
-        generated_at: chrono::Utc::now().to_rfc3339(),
-        ai_model,
-        explanation,
-        commit_history_hash: history_hash,
-    };
-
-    let Ok(json) = serde_json::to_string_pretty(&entry) else {
-        return;
-    };
-
-    let _ = fs::write(cache_path_for_file(file), json);
-}
-
-fn cache_path_for_file(file: &str) -> PathBuf {
-    let mut hasher = DefaultHasher::new();
-    file.hash(&mut hasher);
-    let hash = hasher.finish();
-
-    let basename = Path::new(file)
-        .file_name()
-        .and_then(|value| value.to_str())
-        .unwrap_or("file");
-    let safe_prefix: String = basename
-        .chars()
-        .map(|character| {
-            if character.is_ascii_alphanumeric() || character == '_' || character == '-' {
-                character
-            } else {
-                '_'
-            }
-        })
-        .collect();
-
-    let cache_dir =
-        crate::storage::cache_dir().unwrap_or_else(|_| PathBuf::from(".git/gitwhisper/cache"));
-    cache_dir.join(format!("{}-{:016x}.json", safe_prefix, hash))
+    crate::storage::cache_manager::put_explanation(&record);
 }
 
 fn log_ai_event(
@@ -596,6 +649,16 @@ fn compact_text(input: &str, max_len: usize) -> String {
     }
 }
 
-fn default_cache_source() -> String {
-    "ai".to_string()
+fn print_related_files(predicted_files: &[String]) {
+    if !predicted_files.is_empty() {
+        println!(
+            "\nLikely related files: {}",
+            predicted_files
+                .iter()
+                .take(5)
+                .cloned()
+                .collect::<Vec<_>>()
+                .join(", ")
+        );
+    }
 }
