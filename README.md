@@ -248,7 +248,7 @@ Return Explanation
 Clone the repository:
 
 ```bash
-git clone https://github.com/YOUR_USERNAME/gitwhisper.git
+git clone https://github.com/SHREESHANTH/Gitwhisper.git
 cd gitwhisper
 ```
 
