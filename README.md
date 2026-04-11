@@ -21,7 +21,8 @@ Git already shows what changed. The missing piece is usually intent:
 - Git commit history
 - developer commands
 - environment context
-- Gemini-powered explanations
+- semantic diff + intent + impact analysis
+- AI-powered explanations (Gemini cloud + optional local Ollama)
 
 ---
 
@@ -45,14 +46,43 @@ expiration checks. The latest change closes that gap and improves
 authentication security.
 ```
 
+## File Evolution Summary
+
+Summarize how a file evolved over time (milestones + narrative).
+
+```bash
+gitwhisper summarize auth.js
+```
+
+## Semantic Diff + Intent + Impact
+
+Gitwhisper extracts structured signals from commits (without needing developer input):
+
+- semantic diff facts (file ops, imports, symbols, complexity hints)
+- intent detection (conventional commits, urgency, risk, breaking changes + "why" signals)
+- change impact signals (dependency-aware impact scoring where supported)
+
+## Code Owners (Team Insight)
+
+Show who contributes to a file or directory the most (useful for reviews and spotting knowledge silos).
+
+```bash
+gitwhisper owners src/auth.rs
+gitwhisper owners src/api --limit 10
+```
+
 ## Commit Context Capture
 
 `Gitwhisper` captures developer activity for each commit, including:
 
 - commands executed
-- environment metadata
+- structured environment metadata
+- IDE/editor context (best-effort, no file contents)
+- review/test context (best-effort)
+- behavioral snapshot (commit patterns)
 - timestamps
 - files changed in the commit
+- semantic analysis (diff/intent/impact)
 
 Example stored metadata:
 
@@ -64,12 +94,59 @@ Example structure:
 
 ```json
 {
+  "schema_version": 2,
   "commit": "f6e3058",
   "timestamp": "2026-03-07T12:14:26Z",
   "commands": ["npm test", "git add auth.js"],
-  "environment": "OS: windows\nBranch: main\nNode: v22.14.0",
-  "files": ["auth.js"]
+  "environment": {
+    "os": "windows",
+    "branch": "main",
+    "shell": "powershell.exe",
+    "working_directory": "C:/repo",
+    "tools": { "node": "v22.14.0", "python": "3.12.2", "rust": "1.77.2" }
+  },
+  "ide": { "name": "VSCode", "active_files": ["src/auth.rs"], "extensions": [] },
+  "review": { "ci_provider": "github-actions", "test_status": "passed" },
+  "behavior": { "author": "alice", "commits_last_7d": 12, "burnout_risk": "low" },
+  "files": ["auth.js"],
+  "analysis": {
+    "intent": {
+      "category": "bug-fix",
+      "urgency": "normal",
+      "risk": "medium",
+      "scope": "cross-file",
+      "conventional_type": "fix",
+      "conventional_scope": "auth",
+      "breaking_change": false,
+      "signals": ["type `fix`", "bug-fix wording"],
+      "confidence": 94
+    },
+    "diff": { "files_changed": 1, "lines_added": 5, "lines_removed": 2 },
+    "impact": { "score": 0.42, "hotspots": ["auth"] }
+  }
 }
+```
+
+## Configuration
+
+Project settings live in `.gitwhisper.toml` at the repo root.
+
+Example (cloud, local, or hybrid AI):
+
+```toml
+[ai]
+provider = "hybrid"         # cloud | local | hybrid
+model = "gemini-1.5-flash"  # cloud model (Gemini)
+local_model = "mistral"     # Ollama model name
+prompt_char_budget = 12000  # prompt budget for context-window optimization
+history_depth = 10
+request_timeout_secs = 45
+hybrid_max_prompt_chars = 8000
+ollama_url = "http://localhost:11434"
+
+[privacy]
+offline_mode = false        # disables cloud calls; local still works
+local_cache_only = true
 ```
 
 ## Explanation Caching
@@ -87,6 +164,7 @@ Benefits:
 - faster repeat lookups
 - reduced API usage
 - improved CLI responsiveness
+- multi-level caching (in-memory + on-disk index)
 
 ## Timeline Viewer
 
@@ -142,13 +220,22 @@ User Command
 Load Commit Metadata
      |
      v
-Build File History
+Build File History + Context Window
      |
      v
-Generate AI Prompt
+Semantic Diff + Intent + Impact
      |
      v
-Call Gemini
+Generate Structured Prompt
+     |
+     v
+Select Model (Cloud/Local/Hybrid)
+     |
+     v
+Call AI Provider (Gemini or Ollama)
+     |
+     v
+Cache Result
      |
      v
 Return Explanation
@@ -185,15 +272,15 @@ cargo run -- init
 
 ---
 
-# Gemini API Setup
+# AI Setup
 
-`Gitwhisper` uses the Google Gemini API for AI explanations.
+## Cloud (Gemini)
 
-Create an API key here:
+Create a Gemini API key:
 
 [https://aistudio.google.com/app/apikey](https://aistudio.google.com/app/apikey)
 
-Set the environment variable.
+Set the environment variable:
 
 ### Windows
 
@@ -207,6 +294,23 @@ setx GEMINI_API_KEY "YOUR_API_KEY"
 export GEMINI_API_KEY="YOUR_API_KEY"
 ```
 
+## Local (Ollama)
+
+Install Ollama and pull a model:
+
+```bash
+ollama pull mistral
+```
+
+Then set in `.gitwhisper.toml`:
+
+```toml
+[ai]
+provider = "local"
+local_model = "mistral"
+ollama_url = "http://localhost:11434"
+```
+
 ---
 
 # Project Structure
@@ -215,14 +319,31 @@ export GEMINI_API_KEY="YOUR_API_KEY"
 gitwhisper
 |
 |-- src
+|   |-- ai
+|   |   |-- cloud_gemini.rs
+|   |   |-- local_ollama.rs
+|   |   |-- model_selector.rs
+|   |   `-- mod.rs
+|   |
+|   |-- analysis
+|   |   |-- behavior_patterns.rs
+|   |   |-- diff_parser.rs
+|   |   |-- impact_analysis.rs
+|   |   |-- intent_detection.rs
+|   |   `-- mod.rs
+|   |
 |   |-- collectors
 |   |   |-- commands.rs
 |   |   |-- env.rs
+|   |   |-- ide.rs
+|   |   |-- review_context.rs
 |   |   `-- tests.rs
 |   |
 |   |-- storage
+|   |   |-- cache_manager.rs
 |   |   |-- context.rs
 |   |   |-- load.rs
+|   |   |-- predictive_cache.rs
 |   |   `-- save.rs
 |   |
 |   |-- viewer
@@ -233,6 +354,8 @@ gitwhisper
 |   |
 |   |-- capture.rs
 |   |-- cli.rs
+|   |-- config.rs
+|   |-- error.rs
 |   |-- git.rs
 |   |-- hooks.rs
 |   |-- main.rs
@@ -293,12 +416,9 @@ gitwhisper init
 
 # Roadmap
 
-- AI change intent detection (bug / feature / refactor)
-- GitHub PR summarization
-- commit impact analysis
-- code evolution visualization
-- VS Code extension
-- web dashboard for repository insights
+- Phase 1 (Done): semantic diff + intent detection + impact signals + caching
+- Phase 2 (In Progress): multi-model AI (Gemini + Ollama), context window optimization, structured reasoning prompts
+- Next: PR metadata ingestion + summaries, richer dependency graphs, dashboards
 
 ---
 

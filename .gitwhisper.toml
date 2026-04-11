@@ -1,7 +1,12 @@
 [ai]
+provider = "cloud"
 model = "gemini-1.5-flash"
+local_model = "mistral"
+prompt_char_budget = 12000
 history_depth = 10
 request_timeout_secs = 45
+hybrid_max_prompt_chars = 8000
+ollama_url = "http://localhost:11434"
 
 [capture]
 command_limit = 25

@@ -5,9 +5,13 @@ use std::path::Path;
 
 const CONFIG_FILE_NAME: &str = ".gitwhisper.toml";
 const DEFAULT_AI_MODEL: &str = "gemini-1.5-flash";
+const DEFAULT_LOCAL_MODEL: &str = "mistral";
 const DEFAULT_HISTORY_DEPTH: usize = 10;
 const DEFAULT_TIMEOUT_SECS: u64 = 45;
 const DEFAULT_COMMAND_LIMIT: usize = 25;
+const DEFAULT_PROMPT_CHAR_BUDGET: usize = 12_000;
+const DEFAULT_HYBRID_MAX_PROMPT_CHARS: usize = 8_000;
+const DEFAULT_OLLAMA_URL: &str = "http://localhost:11434";
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 #[serde(default)]
@@ -20,9 +24,22 @@ pub struct AppConfig {
 #[derive(Debug, Clone, Serialize, Deserialize)]
 #[serde(default)]
 pub struct AiConfig {
+    pub provider: AiProvider,
     pub model: String,
+    pub local_model: String,
+    pub prompt_char_budget: usize,
+    pub hybrid_max_prompt_chars: usize,
+    pub ollama_url: String,
     pub history_depth: usize,
     pub request_timeout_secs: u64,
+}
+
+#[derive(Debug, Clone, Copy, Serialize, Deserialize, PartialEq, Eq)]
+#[serde(rename_all = "kebab-case")]
+pub enum AiProvider {
+    Cloud,
+    Local,
+    Hybrid,
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
@@ -54,10 +71,21 @@ impl Default for AppConfig {
 impl Default for AiConfig {
     fn default() -> Self {
         Self {
+            provider: AiProvider::Cloud,
             model: DEFAULT_AI_MODEL.to_string(),
+            local_model: DEFAULT_LOCAL_MODEL.to_string(),
+            prompt_char_budget: DEFAULT_PROMPT_CHAR_BUDGET,
+            hybrid_max_prompt_chars: DEFAULT_HYBRID_MAX_PROMPT_CHARS,
+            ollama_url: DEFAULT_OLLAMA_URL.to_string(),
             history_depth: DEFAULT_HISTORY_DEPTH,
             request_timeout_secs: DEFAULT_TIMEOUT_SECS,
         }
+    }
+}
+
+impl Default for AiProvider {
+    fn default() -> Self {
+        Self::Cloud
     }
 }
 
@@ -116,7 +144,10 @@ mod tests {
         let config = AppConfig::load_from_path(&path).expect("missing config should use defaults");
 
         assert_eq!(config.ai.model, "gemini-1.5-flash");
+        assert_eq!(config.ai.local_model, "mistral");
+        assert_eq!(config.ai.provider, super::AiProvider::Cloud);
         assert_eq!(config.ai.history_depth, 10);
+        assert_eq!(config.ai.prompt_char_budget, 12_000);
         assert_eq!(config.capture.command_limit, 25);
         assert!(config.capture.include_analysis);
         assert!(config.privacy.local_cache_only);
@@ -140,6 +171,7 @@ mod tests {
 
         assert_eq!(config.ai.model, "mistral");
         assert_eq!(config.ai.history_depth, 10);
+        assert_eq!(config.ai.prompt_char_budget, 12_000);
         assert!(config.privacy.offline_mode);
         assert_eq!(config.capture.command_limit, 25);
     }

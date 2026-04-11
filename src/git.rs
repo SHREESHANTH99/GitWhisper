@@ -23,6 +23,13 @@ pub struct AuthorCommitRecord {
     pub files: Vec<String>,
 }
 
+#[derive(Debug, Clone)]
+pub struct OwnerStat {
+    pub commits: usize,
+    pub name: String,
+    pub email: String,
+}
+
 pub fn repo_root() -> AppResult<PathBuf> {
     let output = run_git(&["rev-parse", "--show-toplevel"])?;
     Ok(PathBuf::from(output))
@@ -124,6 +131,13 @@ pub fn file_history(file: &str, limit: usize) -> AppResult<Vec<FileCommit>> {
     Ok(parse_history(&output))
 }
 
+pub fn owners_for_path(path: &str, limit: usize) -> AppResult<Vec<OwnerStat>> {
+    let normalized = normalize_repo_path(path)?;
+    let args = vec!["shortlog", "-sne", "HEAD", "--", normalized.as_str()];
+    let output = run_git(&args)?;
+    Ok(parse_shortlog(&output, limit))
+}
+
 pub fn normalize_repo_path(path: &str) -> AppResult<String> {
     let root = repo_root()?;
     let provided = PathBuf::from(path);
@@ -157,6 +171,57 @@ pub fn normalize_repo_path(path: &str) -> AppResult<String> {
     } else {
         Ok(normalized)
     }
+}
+
+fn parse_shortlog(raw: &str, limit: usize) -> Vec<OwnerStat> {
+    let mut stats = raw
+        .lines()
+        .filter_map(|line| parse_shortlog_line(line))
+        .collect::<Vec<_>>();
+
+    stats.sort_by(|a, b| b.commits.cmp(&a.commits));
+
+    if limit > 0 && stats.len() > limit {
+        stats.truncate(limit);
+    }
+
+    stats
+}
+
+fn parse_shortlog_line(line: &str) -> Option<OwnerStat> {
+    let trimmed = line.trim();
+    if trimmed.is_empty() {
+        return None;
+    }
+
+    let mut parts = trimmed.split_whitespace();
+    let commits: usize = parts.next()?.parse().ok()?;
+    let rest = parts.collect::<Vec<_>>().join(" ");
+    let (name, email) = parse_name_email(&rest);
+
+    Some(OwnerStat {
+        commits,
+        name,
+        email,
+    })
+}
+
+fn parse_name_email(input: &str) -> (String, String) {
+    let trimmed = input.trim();
+    let Some(start) = trimmed.rfind('<') else {
+        return (trimmed.to_string(), String::new());
+    };
+    let Some(end) = trimmed.rfind('>') else {
+        return (trimmed.to_string(), String::new());
+    };
+
+    if start >= end {
+        return (trimmed.to_string(), String::new());
+    }
+
+    let name = trimmed[..start].trim().to_string();
+    let email = trimmed[start + 1..end].trim().to_string();
+    (name, email)
 }
 
 fn parse_history(raw: &str) -> Vec<FileCommit> {

@@ -28,4 +28,16 @@ pub enum Commands {
         #[arg(short, long, default_value = "")]
         api_key: String,
     },
+    /// Summarize how a file evolved over time (milestones + narrative).
+    Summarize {
+        file: String,
+        #[arg(short, long, default_value = "")]
+        api_key: String,
+    },
+    /// Show likely code owners (top contributors) for a file or directory.
+    Owners {
+        path: String,
+        #[arg(short, long, default_value_t = 10)]
+        limit: usize,
+    },
 }
