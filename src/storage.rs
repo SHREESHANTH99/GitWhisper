@@ -26,3 +26,7 @@ pub fn log_dir() -> AppResult<PathBuf> {
 pub fn ai_log_path() -> AppResult<PathBuf> {
     Ok(log_dir()?.join("ai.log"))
 }
+
+pub fn collaboration_log_path() -> AppResult<PathBuf> {
+    Ok(log_dir()?.join("collaboration.log"))
+}

@@ -1,7 +1,9 @@
 use crate::git;
 use std::fs;
 
-const HOOK_MARKER: &str = "# gitwhisper post-commit hook";
+const HOOK_MARKER_PREFIX: &str = "# gitwhisper post-commit hook";
+const BEGIN_MARKER: &str = "# gitwhisper post-commit hook begin";
+const END_MARKER: &str = "# gitwhisper post-commit hook end";
 
 pub fn install_hook() {
     let hook_path = match git::git_dir() {
@@ -25,27 +27,27 @@ pub fn install_hook() {
         .unwrap_or_else(|| "gitwhisper".to_string());
 
     let snippet = format!(
-        r#"{marker}
+        r#"{begin}
 if command -v gitwhisper >/dev/null 2>&1; then
-  gitwhisper capture >/dev/null 2>&1 || true
+  gitwhisper post-commit >/dev/null 2>&1 || true
 else
-  "{fallback}" capture >/dev/null 2>&1 || true
+  "{fallback}" post-commit >/dev/null 2>&1 || true
 fi
+{end}
 "#,
-        marker = HOOK_MARKER,
+        begin = BEGIN_MARKER,
         fallback = fallback_path
+        ,
+        end = END_MARKER
     );
 
     let existing = fs::read_to_string(&hook_path).unwrap_or_default();
-    if existing.contains(HOOK_MARKER) {
-        println!("gitwhisper post-commit hook is already installed.");
-        return;
-    }
+    let sanitized = strip_existing_gitwhisper_hook(&existing);
 
-    let hook_contents = if existing.trim().is_empty() {
+    let hook_contents = if sanitized.trim().is_empty() {
         format!("#!/bin/sh\n\n{snippet}")
     } else {
-        format!("{}\n\n{}", existing.trim_end(), snippet)
+        format!("{}\n\n{}", sanitized.trim_end(), snippet)
     };
 
     if let Err(error) = fs::write(&hook_path, hook_contents) {
@@ -68,4 +70,44 @@ fi
         "Installed gitwhisper post-commit hook at {}",
         hook_path.display()
     );
+}
+
+fn strip_existing_gitwhisper_hook(existing: &str) -> String {
+    if let (Some(begin), Some(end)) = (existing.find(BEGIN_MARKER), existing.find(END_MARKER)) {
+        let after_end = end + END_MARKER.len();
+        let mut cleaned = String::new();
+        cleaned.push_str(existing[..begin].trim_end());
+        if after_end < existing.len() {
+            let remainder = existing[after_end..].trim_start_matches(['\r', '\n']);
+            if !remainder.trim().is_empty() {
+                if !cleaned.trim().is_empty() {
+                    cleaned.push_str("\n\n");
+                }
+                cleaned.push_str(remainder);
+            }
+        }
+        return cleaned;
+    }
+
+    if let Some(start) = existing.find(HOOK_MARKER_PREFIX) {
+        if let Some(relative_end) = existing[start..].find("\nfi") {
+            let end = start + relative_end + 3;
+            let mut cleaned = String::new();
+            cleaned.push_str(existing[..start].trim_end());
+            if end < existing.len() {
+                let remainder = existing[end..].trim_start_matches(['\r', '\n']);
+                if !remainder.trim().is_empty() {
+                    if !cleaned.trim().is_empty() {
+                        cleaned.push_str("\n\n");
+                    }
+                    cleaned.push_str(remainder);
+                }
+            }
+            return cleaned;
+        }
+
+        return existing[..start].trim_end().to_string();
+    }
+
+    existing.to_string()
 }

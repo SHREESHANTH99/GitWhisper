@@ -51,8 +51,26 @@ pub fn short_commit_hash() -> AppResult<String> {
     run_git(&["rev-parse", "--short=7", "HEAD"])
 }
 
+pub fn head_commit_hash() -> AppResult<String> {
+    run_git(&["rev-parse", "HEAD"])
+}
+
+pub fn resolve_commit(commitish: &str) -> AppResult<String> {
+    run_git(&["rev-parse", commitish])
+}
+
+pub fn short_commit_hash_of(commitish: &str) -> AppResult<String> {
+    let short_arg = format!("--short=7");
+    run_git(&["rev-parse", &short_arg, commitish])
+}
+
 pub fn current_branch() -> AppResult<String> {
     run_git(&["rev-parse", "--abbrev-ref", "HEAD"])
+}
+
+pub fn remote_url(name: &str) -> AppResult<String> {
+    let key = format!("remote.{name}.url");
+    run_git(&["config", "--get", &key])
 }
 
 pub fn commit_subject(commit: &str) -> AppResult<String> {
@@ -136,6 +154,12 @@ pub fn owners_for_path(path: &str, limit: usize) -> AppResult<Vec<OwnerStat>> {
     let args = vec!["shortlog", "-sne", "HEAD", "--", normalized.as_str()];
     let output = run_git(&args)?;
     Ok(parse_shortlog(&output, limit))
+}
+
+pub fn add_git_note(commit: &str, note_ref: &str, message: &str) -> AppResult<()> {
+    let ref_arg = format!("--ref={note_ref}");
+    let args = vec!["notes", ref_arg.as_str(), "add", "-f", "-m", message, commit];
+    run_git(&args).map(|_| ())
 }
 
 pub fn normalize_repo_path(path: &str) -> AppResult<String> {

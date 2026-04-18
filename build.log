@@ -1,0 +1,285 @@
+   Compiling socket2 v0.6.3
+   Compiling mio v1.1.1
+   Compiling aws-lc-sys v0.38.0
+   Compiling anstyle-wincon v3.0.11
+   Compiling anstyle-query v1.1.5
+   Compiling winapi-util v0.1.11
+   Compiling dirs-sys v0.5.0
+   Compiling toml_edit v0.22.27
+   Compiling colored v3.1.1
+   Compiling dirs v6.0.0
+   Compiling anstream v0.6.21
+   Compiling same-file v1.0.6
+   Compiling walkdir v2.5.0
+warning: aws-lc-sys@0.38.0: Environment Variable found 'CARGO_ENCODED_RUSTFLAGS': ''
+warning: aws-lc-sys@0.38.0: Emitting configuration: cargo:rustc-cfg=universal
+warning: aws-lc-sys@0.38.0: Building with: CC
+warning: aws-lc-sys@0.38.0: Symbol Prefix: Some("aws_lc_0_38_0")
+warning: aws-lc-sys@0.38.0: Target platform: 'x86_64-pc-windows-gnu'
+warning: aws-lc-sys@0.38.0: Compiler family detection failed due to error: ToolExecError: command did not execute successfully (status code exit code: 1): "gcc.exe" "-E" "C:\\Users\\Lenovo\\OneDrive\\Desktop\\commitLens\\commitlens\\target\\release\\build\\aws-lc-sys-11cee866b754c994\\out\\17512623616989390471detect_compiler_family.c"
+warning: aws-lc-sys@0.38.0: Compiler family detection failed due to error: ToolExecError: command did not execute successfully (status code exit code: 1): "gcc.exe" "-E" "C:\\Users\\Lenovo\\OneDrive\\Desktop\\commitLens\\commitlens\\target\\release\\build\\aws-lc-sys-11cee866b754c994\\out\\13917765716351239561detect_compiler_family.c"
+warning: aws-lc-sys@0.38.0: Compiler family detection failed due to error: ToolExecError: command did not execute successfully (status code exit code: 1): "gcc.exe" "-E" "C:\\Users\\Lenovo\\OneDrive\\Desktop\\commitLens\\commitlens\\target\\release\\build\\aws-lc-sys-11cee866b754c994\\out\\out-c11\\17006233821467922382detect_compiler_family.c"
+warning: aws-lc-sys@0.38.0: Compiler family detection failed due to error: ToolExecError: command did not execute successfully (status code exit code: 1): "gcc.exe" "-E" "C:\\Users\\Lenovo\\OneDrive\\Desktop\\commitLens\\commitlens\\target\\release\\build\\aws-lc-sys-11cee866b754c994\\out\\out-c11\\17239283138864355606detect_compiler_family.c"
+warning: aws-lc-sys@0.38.0: Compilation of 'c11.c' failed - Err(Error { kind: ToolExecError, message: "command did not execute successfully (status code exit code: 1): \"gcc.exe\" \"-O3\" \"-ffunction-sections\" \"-fdata-sections\" \"-m64\" \"-Werror\" \"-Wall\" \"-Wextra\" \"-Wno-unused-parameter\" \"-o\" \"C:\\\\Users\\\\Lenovo\\\\OneDrive\\\\Desktop\\\\commitLens\\\\commitlens\\\\target\\\\release\\\\build\\\\aws-lc-sys-11cee866b754c994\\\\out\\\\out-c11\\\\e1bacabfea35bee3-c11.o\" \"-c\" \"C:\\\\Users\\\\Lenovo\\\\.cargo\\\\registry\\\\src\\\\index.crates.io-1949cf8c6b5b557f\\\\aws-lc-sys-0.38.0\\\\aws-lc\\\\tests\\\\compiler_features_tests\\\\c11.c\"" }).
+warning: aws-lc-sys@0.38.0: Compiler family detection failed due to error: ToolExecError: command did not execute successfully (status code exit code: 1): "gcc.exe" "-E" "C:\\Users\\Lenovo\\OneDrive\\Desktop\\commitLens\\commitlens\\target\\release\\build\\aws-lc-sys-11cee866b754c994\\out\\4802978218309330851detect_compiler_family.c"
+warning: aws-lc-sys@0.38.0: Compiler family detection failed due to error: ToolExecError: command did not execute successfully (status code exit code: 1): "gcc.exe" "-E" "C:\\Users\\Lenovo\\OneDrive\\Desktop\\commitLens\\commitlens\\target\\release\\build\\aws-lc-sys-11cee866b754c994\\out\\2064197943334604693detect_compiler_family.c"
+warning: aws-lc-sys@0.38.0: NOTICE: Build environment source paths might be visible in release binary.
+warning: aws-lc-sys@0.38.0: Compiler family detection failed due to error: ToolExecError: command did not execute successfully (status code exit code: 1): "gcc.exe" "-E" "C:\\Users\\Lenovo\\OneDrive\\Desktop\\commitLens\\commitlens\\target\\release\\build\\aws-lc-sys-11cee866b754c994\\out\\15870666345669598339detect_compiler_family.c"
+warning: aws-lc-sys@0.38.0: Compiler family detection failed due to error: ToolExecError: command did not execute successfully (status code exit code: 1): "gcc.exe" "-E" "C:\\Users\\Lenovo\\OneDrive\\Desktop\\commitLens\\commitlens\\target\\release\\build\\aws-lc-sys-11cee866b754c994\\out\\8005859586373590869detect_compiler_family.c"
+warning: aws-lc-sys@0.38.0: Compiler family detection failed due to error: ToolExecError: command did not execute successfully (status code exit code: 1): "gcc.exe" "-E" "C:\\Users\\Lenovo\\OneDrive\\Desktop\\commitLens\\commitlens\\target\\release\\build\\aws-lc-sys-11cee866b754c994\\out\\out-stdalign_check\\4975755284463429158detect_compiler_family.c"
+warning: aws-lc-sys@0.38.0: Compiler family detection failed due to error: ToolExecError: command did not execute successfully (status code exit code: 1): "gcc.exe" "-E" "C:\\Users\\Lenovo\\OneDrive\\Desktop\\commitLens\\commitlens\\target\\release\\build\\aws-lc-sys-11cee866b754c994\\out\\out-stdalign_check\\17723838831173992392detect_compiler_family.c"
+warning: aws-lc-sys@0.38.0: Compilation of 'stdalign_check.c' failed - Err(Error { kind: ToolExecError, message: "command did not execute successfully (status code exit code: 1): \"gcc.exe\" \"-O3\" \"-ffunction-sections\" \"-fdata-sections\" \"-m64\" \"-Werror\" \"-Wall\" \"-Wextra\" \"-Wno-unused-parameter\" \"-o\" \"C:\\\\Users\\\\Lenovo\\\\OneDrive\\\\Desktop\\\\commitLens\\\\commitlens\\\\target\\\\release\\\\build\\\\aws-lc-sys-11cee866b754c994\\\\out\\\\out-stdalign_check\\\\e1bacabfea35bee3-stdalign_check.o\" \"-c\" \"C:\\\\Users\\\\Lenovo\\\\.cargo\\\\registry\\\\src\\\\index.crates.io-1949cf8c6b5b557f\\\\aws-lc-sys-0.38.0\\\\aws-lc\\\\tests\\\\compiler_features_tests\\\\stdalign_check.c\"" }).
+warning: aws-lc-sys@0.38.0: Compiler family detection failed due to error: ToolExecError: command did not execute successfully (status code exit code: 1): "gcc.exe" "-E" "C:\\Users\\Lenovo\\OneDrive\\Desktop\\commitLens\\commitlens\\target\\release\\build\\aws-lc-sys-11cee866b754c994\\out\\out-builtin_swap_check\\2831426592722811879detect_compiler_family.c"
+warning: aws-lc-sys@0.38.0: Compiler family detection failed due to error: ToolExecError: command did not execute successfully (status code exit code: 1): "gcc.exe" "-E" "C:\\Users\\Lenovo\\OneDrive\\Desktop\\commitLens\\commitlens\\target\\release\\build\\aws-lc-sys-11cee866b754c994\\out\\out-builtin_swap_check\\15258656384080444091detect_compiler_family.c"
+warning: aws-lc-sys@0.38.0: Compilation of 'builtin_swap_check.c' failed - Err(Error { kind: ToolExecError, message: "command did not execute successfully (status code exit code: 1): \"gcc.exe\" \"-O3\" \"-ffunction-sections\" \"-fdata-sections\" \"-m64\" \"-Werror\" \"-Wall\" \"-Wextra\" \"-Wno-unused-parameter\" \"-o\" \"C:\\\\Users\\\\Lenovo\\\\OneDrive\\\\Desktop\\\\commitLens\\\\commitlens\\\\target\\\\release\\\\build\\\\aws-lc-sys-11cee866b754c994\\\\out\\\\out-builtin_swap_check\\\\e1bacabfea35bee3-builtin_swap_check.o\" \"-c\" \"C:\\\\Users\\\\Lenovo\\\\.cargo\\\\registry\\\\src\\\\index.crates.io-1949cf8c6b5b557f\\\\aws-lc-sys-0.38.0\\\\aws-lc\\\\tests\\\\compiler_features_tests\\\\builtin_swap_check.c\"" }).
+warning: aws-lc-sys@0.38.0: Compiler family detection failed due to error: ToolExecError: command did not execute successfully (status code exit code: 1): "gcc.exe" "-E" "C:\\Users\\Lenovo\\OneDrive\\Desktop\\commitLens\\commitlens\\target\\release\\build\\aws-lc-sys-11cee866b754c994\\out\\1924406570048810338detect_compiler_family.c"
+error: failed to run custom build command for `aws-lc-sys v0.38.0`
+
+Caused by:
+  process didn't exit successfully: `C:\Users\Lenovo\OneDrive\Desktop\commitLens\commitlens\target\release\build\aws-lc-sys-f4405062647cd148\build-script-main` (exit code: 101)
+  --- stdout
+  cargo:rerun-if-env-changed=AWS_LC_SYS_NO_PREFIX_x86_64_pc_windows_gnu
+  cargo:rerun-if-env-changed=AWS_LC_SYS_NO_PREFIX
+  cargo:rerun-if-env-changed=AWS_LC_SYS_PREGENERATING_BINDINGS_x86_64_pc_windows_gnu
+  cargo:rerun-if-env-changed=AWS_LC_SYS_PREGENERATING_BINDINGS
+  cargo:rerun-if-env-changed=AWS_LC_SYS_EXTERNAL_BINDGEN_x86_64_pc_windows_gnu
+  cargo:rerun-if-env-changed=AWS_LC_SYS_EXTERNAL_BINDGEN
+  cargo:rerun-if-env-changed=AWS_LC_SYS_NO_ASM_x86_64_pc_windows_gnu
+  cargo:rerun-if-env-changed=AWS_LC_SYS_NO_ASM
+  cargo:rerun-if-env-changed=AWS_LC_SYS_PREBUILT_NASM_x86_64_pc_windows_gnu
+  cargo:rerun-if-env-changed=AWS_LC_SYS_PREBUILT_NASM
+  cargo:rerun-if-env-changed=AWS_LC_SYS_C_STD_x86_64_pc_windows_gnu
+  cargo:rerun-if-env-changed=AWS_LC_SYS_C_STD
+  cargo:rerun-if-env-changed=AWS_LC_SYS_CMAKE_BUILDER_x86_64_pc_windows_gnu
+  cargo:rerun-if-env-changed=AWS_LC_SYS_CMAKE_BUILDER
+  cargo:rerun-if-env-changed=AWS_LC_SYS_NO_PREGENERATED_SRC_x86_64_pc_windows_gnu
+  cargo:rerun-if-env-changed=AWS_LC_SYS_NO_PREGENERATED_SRC
+  cargo:rerun-if-env-changed=AWS_LC_SYS_EFFECTIVE_TARGET_x86_64_pc_windows_gnu
+  cargo:rerun-if-env-changed=AWS_LC_SYS_EFFECTIVE_TARGET
+  cargo:rerun-if-env-changed=AWS_LC_SYS_NO_JITTER_ENTROPY_x86_64_pc_windows_gnu
+  cargo:rerun-if-env-changed=AWS_LC_SYS_NO_JITTER_ENTROPY
+  cargo:rerun-if-env-changed=AWS_LC_SYS_NO_U1_BINDINGS_x86_64_pc_windows_gnu
+  cargo:rerun-if-env-changed=AWS_LC_SYS_NO_U1_BINDINGS
+  cargo:rerun-if-env-changed=CARGO_ENCODED_RUSTFLAGS
+  cargo:warning=Environment Variable found 'CARGO_ENCODED_RUSTFLAGS': ''
+  cargo:warning=Emitting configuration: cargo:rustc-cfg=universal
+  cargo:rustc-cfg=universal
+  cargo:rerun-if-env-changed=AWS_LC_SYS_STATIC_x86_64_pc_windows_gnu
+  cargo:rerun-if-env-changed=AWS_LC_SYS_STATIC
+  cargo:rerun-if-env-changed=CARGO_FEATURE_SSL
+  cargo:warning=Building with: CC
+  cargo:warning=Symbol Prefix: Some("aws_lc_0_38_0")
+  cargo:rerun-if-env-changed=CARGO_FEATURE_SSL
+  cargo:warning=Target platform: 'x86_64-pc-windows-gnu'
+  cargo:root=C:\Users\Lenovo\OneDrive\Desktop\commitLens\commitlens\target\release\build\aws-lc-sys-11cee866b754c994\out
+  cargo:rerun-if-env-changed=AWS_LC_SYS_TARGET_CFLAGS_x86_64_pc_windows_gnu
+  cargo:rerun-if-env-changed=AWS_LC_SYS_TARGET_CFLAGS
+  cargo:rerun-if-env-changed=TARGET_CFLAGS_x86_64_pc_windows_gnu
+  cargo:rerun-if-env-changed=TARGET_CFLAGS
+  cargo:rerun-if-env-changed=AWS_LC_SYS_CFLAGS_x86_64_pc_windows_gnu
+  cargo:rerun-if-env-changed=AWS_LC_SYS_CFLAGS
+  cargo:rerun-if-env-changed=CFLAGS_x86_64_pc_windows_gnu
+  cargo:rerun-if-env-changed=CFLAGS
+  OPT_LEVEL = Some(3)
+  OUT_DIR = Some(C:\Users\Lenovo\OneDrive\Desktop\commitLens\commitlens\target\release\build\aws-lc-sys-11cee866b754c994\out)
+  TARGET = Some(x86_64-pc-windows-gnu)
+  CARGO_ENCODED_RUSTFLAGS = Some()
+  HOST = Some(x86_64-pc-windows-gnu)
+  cargo:rerun-if-env-changed=CC_x86_64-pc-windows-gnu
+  CC_x86_64-pc-windows-gnu = None
+  cargo:rerun-if-env-changed=CC_x86_64_pc_windows_gnu
+  CC_x86_64_pc_windows_gnu = None
+  cargo:rerun-if-env-changed=HOST_CC
+  HOST_CC = None
+  cargo:rerun-if-env-changed=CC
+  CC = None
+  cargo:rerun-if-env-changed=CC_ENABLE_DEBUG_OUTPUT
+  cargo:warning=Compiler family detection failed due to error: ToolExecError: command did not execute successfully (status code exit code: 1): "gcc.exe" "-E" "C:\\Users\\Lenovo\\OneDrive\\Desktop\\commitLens\\commitlens\\target\\release\\build\\aws-lc-sys-11cee866b754c994\\out\\17512623616989390471detect_compiler_family.c"
+  RUSTC_WRAPPER = None
+  cargo:rerun-if-env-changed=CRATE_CC_NO_DEFAULTS
+  CRATE_CC_NO_DEFAULTS = None
+  DEBUG = Some(false)
+  CARGO_CFG_TARGET_FEATURE = Some(cmpxchg16b,fxsr,sse,sse2,sse3)
+  cargo:rerun-if-env-changed=CFLAGS
+  CFLAGS = None
+  cargo:rerun-if-env-changed=HOST_CFLAGS
+  HOST_CFLAGS = None
+  cargo:rerun-if-env-changed=CFLAGS_x86_64_pc_windows_gnu
+  CFLAGS_x86_64_pc_windows_gnu = None
+  cargo:rerun-if-env-changed=CFLAGS_x86_64-pc-windows-gnu
+  CFLAGS_x86_64-pc-windows-gnu = None
+  cargo:warning=Compiler family detection failed due to error: ToolExecError: command did not execute successfully (status code exit code: 1): "gcc.exe" "-E" "C:\\Users\\Lenovo\\OneDrive\\Desktop\\commitLens\\commitlens\\target\\release\\build\\aws-lc-sys-11cee866b754c994\\out\\13917765716351239561detect_compiler_family.c"
+  OPT_LEVEL = Some(3)
+  TARGET = Some(x86_64-pc-windows-gnu)
+  CARGO_ENCODED_RUSTFLAGS = Some()
+  HOST = Some(x86_64-pc-windows-gnu)
+  cargo:rerun-if-env-changed=CC_x86_64-pc-windows-gnu
+  CC_x86_64-pc-windows-gnu = None
+  cargo:rerun-if-env-changed=CC_x86_64_pc_windows_gnu
+  CC_x86_64_pc_windows_gnu = None
+  cargo:rerun-if-env-changed=HOST_CC
+  HOST_CC = None
+  cargo:rerun-if-env-changed=CC
+  CC = None
+  cargo:rerun-if-env-changed=CC_ENABLE_DEBUG_OUTPUT
+  cargo:warning=Compiler family detection failed due to error: ToolExecError: command did not execute successfully (status code exit code: 1): "gcc.exe" "-E" "C:\\Users\\Lenovo\\OneDrive\\Desktop\\commitLens\\commitlens\\target\\release\\build\\aws-lc-sys-11cee866b754c994\\out\\out-c11\\17006233821467922382detect_compiler_family.c"
+  RUSTC_WRAPPER = None
+  cargo:rerun-if-env-changed=CRATE_CC_NO_DEFAULTS
+  CRATE_CC_NO_DEFAULTS = None
+  DEBUG = Some(false)
+  CARGO_CFG_TARGET_FEATURE = Some(cmpxchg16b,fxsr,sse,sse2,sse3)
+  cargo:rerun-if-env-changed=CFLAGS
+  CFLAGS = None
+  cargo:rerun-if-env-changed=HOST_CFLAGS
+  HOST_CFLAGS = None
+  cargo:rerun-if-env-changed=CFLAGS_x86_64_pc_windows_gnu
+  CFLAGS_x86_64_pc_windows_gnu = None
+  cargo:rerun-if-env-changed=CFLAGS_x86_64-pc-windows-gnu
+  CFLAGS_x86_64-pc-windows-gnu = None
+  cargo:warning=Compiler family detection failed due to error: ToolExecError: command did not execute successfully (status code exit code: 1): "gcc.exe" "-E" "C:\\Users\\Lenovo\\OneDrive\\Desktop\\commitLens\\commitlens\\target\\release\\build\\aws-lc-sys-11cee866b754c994\\out\\out-c11\\17239283138864355606detect_compiler_family.c"
+  cargo:warning=Compilation of 'c11.c' failed - Err(Error { kind: ToolExecError, message: "command did not execute successfully (status code exit code: 1): \"gcc.exe\" \"-O3\" \"-ffunction-sections\" \"-fdata-sections\" \"-m64\" \"-Werror\" \"-Wall\" \"-Wextra\" \"-Wno-unused-parameter\" \"-o\" \"C:\\\\Users\\\\Lenovo\\\\OneDrive\\\\Desktop\\\\commitLens\\\\commitlens\\\\target\\\\release\\\\build\\\\aws-lc-sys-11cee866b754c994\\\\out\\\\out-c11\\\\e1bacabfea35bee3-c11.o\" \"-c\" \"C:\\\\Users\\\\Lenovo\\\\.cargo\\\\registry\\\\src\\\\index.crates.io-1949cf8c6b5b557f\\\\aws-lc-sys-0.38.0\\\\aws-lc\\\\tests\\\\compiler_features_tests\\\\c11.c\"" }).
+  cargo:rerun-if-env-changed=AWS_LC_SYS_TARGET_CC_x86_64_pc_windows_gnu
+  cargo:rerun-if-env-changed=AWS_LC_SYS_TARGET_CC
+  cargo:rerun-if-env-changed=TARGET_CC_x86_64_pc_windows_gnu
+  cargo:rerun-if-env-changed=TARGET_CC
+  cargo:rerun-if-env-changed=AWS_LC_SYS_CC_x86_64_pc_windows_gnu
+  cargo:rerun-if-env-changed=AWS_LC_SYS_CC
+  cargo:rerun-if-env-changed=CC_x86_64_pc_windows_gnu
+  cargo:rerun-if-env-changed=CC
+  cargo:rerun-if-env-changed=AWS_LC_SYS_TARGET_CXX_x86_64_pc_windows_gnu
+  cargo:rerun-if-env-changed=AWS_LC_SYS_TARGET_CXX
+  cargo:rerun-if-env-changed=TARGET_CXX_x86_64_pc_windows_gnu
+  cargo:rerun-if-env-changed=TARGET_CXX
+  cargo:rerun-if-env-changed=AWS_LC_SYS_CXX_x86_64_pc_windows_gnu
+  cargo:rerun-if-env-changed=AWS_LC_SYS_CXX
+  cargo:rerun-if-env-changed=CXX_x86_64_pc_windows_gnu
+  cargo:rerun-if-env-changed=CXX
+  cargo:warning=Compiler family detection failed due to error: ToolExecError: command did not execute successfully (status code exit code: 1): "gcc.exe" "-E" "C:\\Users\\Lenovo\\OneDrive\\Desktop\\commitLens\\commitlens\\target\\release\\build\\aws-lc-sys-11cee866b754c994\\out\\4802978218309330851detect_compiler_family.c"
+  OUT_DIR = Some(C:\Users\Lenovo\OneDrive\Desktop\commitLens\commitlens\target\release\build\aws-lc-sys-11cee866b754c994\out)
+  cargo:rerun-if-env-changed=CC_ENABLE_DEBUG_OUTPUT
+  cargo:warning=Compiler family detection failed due to error: ToolExecError: command did not execute successfully (status code exit code: 1): "gcc.exe" "-E" "C:\\Users\\Lenovo\\OneDrive\\Desktop\\commitLens\\commitlens\\target\\release\\build\\aws-lc-sys-11cee866b754c994\\out\\2064197943334604693detect_compiler_family.c"
+  cargo:rerun-if-env-changed=CRATE_CC_NO_DEFAULTS
+  CRATE_CC_NO_DEFAULTS = None
+  TARGET = Some(x86_64-pc-windows-gnu)
+  CARGO_CFG_TARGET_FEATURE = Some(cmpxchg16b,fxsr,sse,sse2,sse3)
+  HOST = Some(x86_64-pc-windows-gnu)
+  cargo:rerun-if-env-changed=CFLAGS
+  CFLAGS = None
+  cargo:rerun-if-env-changed=HOST_CFLAGS
+  HOST_CFLAGS = None
+  cargo:rerun-if-env-changed=CFLAGS_x86_64_pc_windows_gnu
+  CFLAGS_x86_64_pc_windows_gnu = None
+  cargo:rerun-if-env-changed=CFLAGS_x86_64-pc-windows-gnu
+  CFLAGS_x86_64-pc-windows-gnu = None
+  cargo:warning=NOTICE: Build environment source paths might be visible in release binary.
+  cargo:warning=Compiler family detection failed due to error: ToolExecError: command did not execute successfully (status code exit code: 1): "gcc.exe" "-E" "C:\\Users\\Lenovo\\OneDrive\\Desktop\\commitLens\\commitlens\\target\\release\\build\\aws-lc-sys-11cee866b754c994\\out\\15870666345669598339detect_compiler_family.c"
+  OUT_DIR = Some(C:\Users\Lenovo\OneDrive\Desktop\commitLens\commitlens\target\release\build\aws-lc-sys-11cee866b754c994\out)
+  cargo:rerun-if-env-changed=CC_ENABLE_DEBUG_OUTPUT
+  cargo:warning=Compiler family detection failed due to error: ToolExecError: command did not execute successfully (status code exit code: 1): "gcc.exe" "-E" "C:\\Users\\Lenovo\\OneDrive\\Desktop\\commitLens\\commitlens\\target\\release\\build\\aws-lc-sys-11cee866b754c994\\out\\8005859586373590869detect_compiler_family.c"
+  cargo:rerun-if-env-changed=CRATE_CC_NO_DEFAULTS
+  CRATE_CC_NO_DEFAULTS = None
+  TARGET = Some(x86_64-pc-windows-gnu)
+  CARGO_CFG_TARGET_FEATURE = Some(cmpxchg16b,fxsr,sse,sse2,sse3)
+  HOST = Some(x86_64-pc-windows-gnu)
+  cargo:rerun-if-env-changed=CFLAGS
+  CFLAGS = None
+  cargo:rerun-if-env-changed=HOST_CFLAGS
+  HOST_CFLAGS = None
+  cargo:rerun-if-env-changed=CFLAGS_x86_64_pc_windows_gnu
+  CFLAGS_x86_64_pc_windows_gnu = None
+  cargo:rerun-if-env-changed=CFLAGS_x86_64-pc-windows-gnu
+  CFLAGS_x86_64-pc-windows-gnu = None
+  OPT_LEVEL = Some(3)
+  TARGET = Some(x86_64-pc-windows-gnu)
+  CARGO_ENCODED_RUSTFLAGS = Some()
+  HOST = Some(x86_64-pc-windows-gnu)
+  cargo:rerun-if-env-changed=CC_x86_64-pc-windows-gnu
+  CC_x86_64-pc-windows-gnu = None
+  cargo:rerun-if-env-changed=CC_x86_64_pc_windows_gnu
+  CC_x86_64_pc_windows_gnu = None
+  cargo:rerun-if-env-changed=HOST_CC
+  HOST_CC = None
+  cargo:rerun-if-env-changed=CC
+  CC = None
+  cargo:rerun-if-env-changed=CC_ENABLE_DEBUG_OUTPUT
+  cargo:warning=Compiler family detection failed due to error: ToolExecError: command did not execute successfully (status code exit code: 1): "gcc.exe" "-E" "C:\\Users\\Lenovo\\OneDrive\\Desktop\\commitLens\\commitlens\\target\\release\\build\\aws-lc-sys-11cee866b754c994\\out\\out-stdalign_check\\4975755284463429158detect_compiler_family.c"
+  RUSTC_WRAPPER = None
+  cargo:rerun-if-env-changed=CRATE_CC_NO_DEFAULTS
+  CRATE_CC_NO_DEFAULTS = None
+  DEBUG = Some(false)
+  CARGO_CFG_TARGET_FEATURE = Some(cmpxchg16b,fxsr,sse,sse2,sse3)
+  cargo:rerun-if-env-changed=CFLAGS
+  CFLAGS = None
+  cargo:rerun-if-env-changed=HOST_CFLAGS
+  HOST_CFLAGS = None
+  cargo:rerun-if-env-changed=CFLAGS_x86_64_pc_windows_gnu
+  CFLAGS_x86_64_pc_windows_gnu = None
+  cargo:rerun-if-env-changed=CFLAGS_x86_64-pc-windows-gnu
+  CFLAGS_x86_64-pc-windows-gnu = None
+  cargo:warning=Compiler family detection failed due to error: ToolExecError: command did not execute successfully (status code exit code: 1): "gcc.exe" "-E" "C:\\Users\\Lenovo\\OneDrive\\Desktop\\commitLens\\commitlens\\target\\release\\build\\aws-lc-sys-11cee866b754c994\\out\\out-stdalign_check\\17723838831173992392detect_compiler_family.c"
+  cargo:warning=Compilation of 'stdalign_check.c' failed - Err(Error { kind: ToolExecError, message: "command did not execute successfully (status code exit code: 1): \"gcc.exe\" \"-O3\" \"-ffunction-sections\" \"-fdata-sections\" \"-m64\" \"-Werror\" \"-Wall\" \"-Wextra\" \"-Wno-unused-parameter\" \"-o\" \"C:\\\\Users\\\\Lenovo\\\\OneDrive\\\\Desktop\\\\commitLens\\\\commitlens\\\\target\\\\release\\\\build\\\\aws-lc-sys-11cee866b754c994\\\\out\\\\out-stdalign_check\\\\e1bacabfea35bee3-stdalign_check.o\" \"-c\" \"C:\\\\Users\\\\Lenovo\\\\.cargo\\\\registry\\\\src\\\\index.crates.io-1949cf8c6b5b557f\\\\aws-lc-sys-0.38.0\\\\aws-lc\\\\tests\\\\compiler_features_tests\\\\stdalign_check.c\"" }).
+  OPT_LEVEL = Some(3)
+  TARGET = Some(x86_64-pc-windows-gnu)
+  CARGO_ENCODED_RUSTFLAGS = Some()
+  HOST = Some(x86_64-pc-windows-gnu)
+  cargo:rerun-if-env-changed=CC_x86_64-pc-windows-gnu
+  CC_x86_64-pc-windows-gnu = None
+  cargo:rerun-if-env-changed=CC_x86_64_pc_windows_gnu
+  CC_x86_64_pc_windows_gnu = None
+  cargo:rerun-if-env-changed=HOST_CC
+  HOST_CC = None
+  cargo:rerun-if-env-changed=CC
+  CC = None
+  cargo:rerun-if-env-changed=CC_ENABLE_DEBUG_OUTPUT
+  cargo:warning=Compiler family detection failed due to error: ToolExecError: command did not execute successfully (status code exit code: 1): "gcc.exe" "-E" "C:\\Users\\Lenovo\\OneDrive\\Desktop\\commitLens\\commitlens\\target\\release\\build\\aws-lc-sys-11cee866b754c994\\out\\out-builtin_swap_check\\2831426592722811879detect_compiler_family.c"
+  RUSTC_WRAPPER = None
+  cargo:rerun-if-env-changed=CRATE_CC_NO_DEFAULTS
+  CRATE_CC_NO_DEFAULTS = None
+  DEBUG = Some(false)
+  CARGO_CFG_TARGET_FEATURE = Some(cmpxchg16b,fxsr,sse,sse2,sse3)
+  cargo:rerun-if-env-changed=CFLAGS
+  CFLAGS = None
+  cargo:rerun-if-env-changed=HOST_CFLAGS
+  HOST_CFLAGS = None
+  cargo:rerun-if-env-changed=CFLAGS_x86_64_pc_windows_gnu
+  CFLAGS_x86_64_pc_windows_gnu = None
+  cargo:rerun-if-env-changed=CFLAGS_x86_64-pc-windows-gnu
+  CFLAGS_x86_64-pc-windows-gnu = None
+  cargo:warning=Compiler family detection failed due to error: ToolExecError: command did not execute successfully (status code exit code: 1): "gcc.exe" "-E" "C:\\Users\\Lenovo\\OneDrive\\Desktop\\commitLens\\commitlens\\target\\release\\build\\aws-lc-sys-11cee866b754c994\\out\\out-builtin_swap_check\\15258656384080444091detect_compiler_family.c"
+  cargo:warning=Compilation of 'builtin_swap_check.c' failed - Err(Error { kind: ToolExecError, message: "command did not execute successfully (status code exit code: 1): \"gcc.exe\" \"-O3\" \"-ffunction-sections\" \"-fdata-sections\" \"-m64\" \"-Werror\" \"-Wall\" \"-Wextra\" \"-Wno-unused-parameter\" \"-o\" \"C:\\\\Users\\\\Lenovo\\\\OneDrive\\\\Desktop\\\\commitLens\\\\commitlens\\\\target\\\\release\\\\build\\\\aws-lc-sys-11cee866b754c994\\\\out\\\\out-builtin_swap_check\\\\e1bacabfea35bee3-builtin_swap_check.o\" \"-c\" \"C:\\\\Users\\\\Lenovo\\\\.cargo\\\\registry\\\\src\\\\index.crates.io-1949cf8c6b5b557f\\\\aws-lc-sys-0.38.0\\\\aws-lc\\\\tests\\\\compiler_features_tests\\\\builtin_swap_check.c\"" }).
+  OPT_LEVEL = Some(3)
+  OUT_DIR = Some(C:\Users\Lenovo\OneDrive\Desktop\commitLens\commitlens\target\release\build\aws-lc-sys-11cee866b754c994\out)
+  TARGET = Some(x86_64-pc-windows-gnu)
+  CARGO_ENCODED_RUSTFLAGS = Some()
+  HOST = Some(x86_64-pc-windows-gnu)
+  cargo:rerun-if-env-changed=CC_x86_64-pc-windows-gnu
+  CC_x86_64-pc-windows-gnu = None
+  cargo:rerun-if-env-changed=CC_x86_64_pc_windows_gnu
+  CC_x86_64_pc_windows_gnu = None
+  cargo:rerun-if-env-changed=HOST_CC
+  HOST_CC = None
+  cargo:rerun-if-env-changed=CC
+  CC = None
+  cargo:rerun-if-env-changed=CC_ENABLE_DEBUG_OUTPUT
+  cargo:warning=Compiler family detection failed due to error: ToolExecError: command did not execute successfully (status code exit code: 1): "gcc.exe" "-E" "C:\\Users\\Lenovo\\OneDrive\\Desktop\\commitLens\\commitlens\\target\\release\\build\\aws-lc-sys-11cee866b754c994\\out\\1924406570048810338detect_compiler_family.c"
+  RUSTC_WRAPPER = None
+  cargo:rerun-if-env-changed=CRATE_CC_NO_DEFAULTS
+  CRATE_CC_NO_DEFAULTS = None
+  DEBUG = Some(false)
+  CARGO_CFG_TARGET_FEATURE = Some(cmpxchg16b,fxsr,sse,sse2,sse3)
+  cargo:rerun-if-env-changed=CFLAGS
+  CFLAGS = None
+  cargo:rerun-if-env-changed=HOST_CFLAGS
+  HOST_CFLAGS = None
+  cargo:rerun-if-env-changed=CFLAGS_x86_64_pc_windows_gnu
+  CFLAGS_x86_64_pc_windows_gnu = None
+  cargo:rerun-if-env-changed=CFLAGS_x86_64-pc-windows-gnu
+  CFLAGS_x86_64-pc-windows-gnu = None
+
+  --- stderr
+
+  thread 'main' (22448) panicked at C:\Users\Lenovo\.cargo\registry\src\index.crates.io-1949cf8c6b5b557f\aws-lc-sys-0.38.0\builder\cc_builder.rs:702:9:
+  COMPILER: gcc.exeARGS: ["-O3", "-ffunction-sections", "-fdata-sections", "-m64", "-Wall", "-Wextra", "C:\\Users\\Lenovo\\.cargo\\registry\\src\\index.crates.io-1949cf8c6b5b557f\\aws-lc-sys-0.38.0\\aws-lc\\tests\\compiler_features_tests\\memcmp_invalid_stripped_check.c", "-Wno-unused-parameter", "-o", "C:\\Users\\Lenovo\\OneDrive\\Desktop\\commitLens\\commitlens\\target\\release\\build\\aws-lc-sys-11cee866b754c994\\out\\memcmp_invalid_stripped_check"]EXECUTED: trueERROR: OUTPUT: Failed to compile memcmp_invalid_stripped_check
+              
+  note: run with `RUST_BACKTRACE=1` environment variable to display a backtrace
+warning: build failed, waiting for other jobs to finish...

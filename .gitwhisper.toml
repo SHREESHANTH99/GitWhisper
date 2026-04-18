@@ -13,6 +13,41 @@ command_limit = 25
 include_environment = true
 include_analysis = true
 
+[collaboration]
+auto_annotate_commits = true
+enable_git_notes = true
+git_notes_ref = "refs/notes/gitwhisper"
+webhook_url = ""
+webhook_timeout_secs = 10
+
+[integrations.slack]
+enabled = false
+webhook_url = ""
+bot_token = ""
+channel = ""
+auto_share_on_commit = false
+include_digest = false
+
+[integrations.discord]
+enabled = false
+webhook_url = ""
+auto_share_on_commit = false
+include_digest = false
+
+[integrations.github]
+enabled = false
+token = ""
+api_url = "https://api.github.com"
+auto_comment_on_pr = false
+update_pr_description = false
+
+[integrations.gitlab]
+enabled = false
+token = ""
+api_url = "https://gitlab.com/api/v4"
+auto_comment_on_mr = false
+update_mr_description = false
+
 [privacy]
 offline_mode = false
 local_cache_only = true

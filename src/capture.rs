@@ -1,20 +1,28 @@
-pub fn capture_context() {
-    let config = match crate::config::AppConfig::load() {
-        Ok(config) => config,
-        Err(error) => {
-            eprintln!("Failed to load .gitwhisper.toml: {error}");
-            return;
-        }
-    };
+use crate::error::AppResult;
+use std::path::PathBuf;
 
-    let commit = match crate::git::short_commit_hash() {
-        Ok(commit) => commit,
+pub struct CaptureResult {
+    pub commit: String,
+    pub path: PathBuf,
+}
+
+pub fn capture_context() {
+    match capture_head_context() {
+        Ok(result) => {
+            println!("Captured context for commit {}", result.commit);
+            println!("Saved metadata to {}", result.path.display());
+        }
         Err(error) => {
             eprintln!("{error}");
-            return;
         }
-    };
+    }
+}
 
+pub fn capture_head_context() -> AppResult<CaptureResult> {
+    let config = crate::config::AppConfig::load()
+        .map_err(|error| crate::error::AppError::message(format!("Failed to load .gitwhisper.toml: {error}")))?;
+
+    let commit = crate::git::short_commit_hash()?;
     let timestamp = chrono::Utc::now().to_rfc3339();
     let files = crate::git::changed_files_for_commit(&commit).unwrap_or_default();
     let commands = crate::collectors::commands::recent_commands(config.capture.command_limit);
@@ -58,7 +66,7 @@ pub fn capture_context() {
     };
 
     let context = crate::storage::context::CommitContext {
-        schema_version: 2,
+        schema_version: 3,
         commit: commit.clone(),
         timestamp,
         commands,
@@ -70,13 +78,8 @@ pub fn capture_context() {
         analysis,
     };
 
-    match crate::storage::save::save_context(&context) {
-        Ok(path) => {
-            println!("Captured context for commit {}", commit);
-            println!("Saved metadata to {}", path.display());
-        }
-        Err(error) => {
-            eprintln!("Failed to save commit context: {error}");
-        }
-    }
+    let path = crate::storage::save::save_context(&context)
+        .map_err(|error| crate::error::AppError::message(format!("Failed to save commit context: {error}")))?;
+
+    Ok(CaptureResult { commit, path })
 }

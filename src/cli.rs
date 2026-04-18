@@ -1,4 +1,4 @@
-use clap::{Parser, Subcommand};
+use clap::{Parser, Subcommand, ValueEnum};
 
 #[derive(Parser)]
 #[command(
@@ -12,10 +12,36 @@ pub struct Cli {
 
 #[derive(Subcommand)]
 pub enum Commands {
-    /// Install the post-commit hook that captures context after each commit.
+    /// Install the post-commit hook that captures context and annotates commits.
     Init,
     /// Capture context for the current HEAD commit.
     Capture,
+    /// Capture context, generate a commit explanation, and store it in Git notes.
+    Annotate {
+        commit: Option<String>,
+        #[arg(short, long, default_value = "")]
+        api_key: String,
+    },
+    /// Share a commit explanation to Slack or Discord.
+    Share {
+        provider: ShareProvider,
+        commit: Option<String>,
+        #[arg(short, long, default_value = "")]
+        api_key: String,
+    },
+    /// Publish a Gitwhisper review summary to GitHub or GitLab.
+    Review {
+        provider: ReviewProvider,
+        commit: Option<String>,
+        #[arg(short, long, default_value = "")]
+        api_key: String,
+    },
+    /// Send a daily or weekly digest to Slack or Discord.
+    Digest {
+        provider: ShareProvider,
+        #[arg(long, default_value = "weekly")]
+        period: DigestPeriod,
+    },
     /// Show saved commit context entries.
     Log,
     /// Replay captured activity for a commit. Defaults to the latest saved commit.
@@ -40,4 +66,54 @@ pub enum Commands {
         #[arg(short, long, default_value_t = 10)]
         limit: usize,
     },
+    /// Start the lightweight team analytics dashboard.
+    Dashboard {
+        #[arg(long, default_value = "127.0.0.1")]
+        host: String,
+        #[arg(long, default_value_t = 7878)]
+        port: u16,
+    },
+    /// Export analytics snapshot to JSON or CSV.
+    Export {
+        #[arg(long, default_value = "json")]
+        format: ExportFormat,
+        #[arg(long, default_value = "exports/gitwhisper-snapshot.json")]
+        output: String,
+    },
+    /// Generate markdown wiki pages from captured project knowledge.
+    Wiki {
+        #[arg(long, default_value = "wiki")]
+        output: String,
+    },
+    /// Generate ADR markdown files from decision-worthy commits.
+    Adr {
+        #[arg(long, default_value = "docs/adrs")]
+        output: String,
+    },
+    #[command(hide = true)]
+    PostCommit,
+}
+
+#[derive(Copy, Clone, Debug, ValueEnum)]
+pub enum ShareProvider {
+    Slack,
+    Discord,
+}
+
+#[derive(Copy, Clone, Debug, ValueEnum)]
+pub enum ReviewProvider {
+    Github,
+    Gitlab,
+}
+
+#[derive(Copy, Clone, Debug, ValueEnum)]
+pub enum DigestPeriod {
+    Daily,
+    Weekly,
+}
+
+#[derive(Copy, Clone, Debug, ValueEnum)]
+pub enum ExportFormat {
+    Json,
+    Csv,
 }

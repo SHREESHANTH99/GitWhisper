@@ -12,12 +12,18 @@ const DEFAULT_COMMAND_LIMIT: usize = 25;
 const DEFAULT_PROMPT_CHAR_BUDGET: usize = 12_000;
 const DEFAULT_HYBRID_MAX_PROMPT_CHARS: usize = 8_000;
 const DEFAULT_OLLAMA_URL: &str = "http://localhost:11434";
+const DEFAULT_GIT_NOTES_REF: &str = "refs/notes/gitwhisper";
+const DEFAULT_WEBHOOK_TIMEOUT_SECS: u64 = 10;
+const DEFAULT_GITHUB_API_URL: &str = "https://api.github.com";
+const DEFAULT_GITLAB_API_URL: &str = "https://gitlab.com/api/v4";
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 #[serde(default)]
 pub struct AppConfig {
     pub ai: AiConfig,
     pub capture: CaptureConfig,
+    pub collaboration: CollaborationConfig,
+    pub integrations: IntegrationsConfig,
     pub privacy: PrivacyConfig,
 }
 
@@ -52,6 +58,65 @@ pub struct CaptureConfig {
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 #[serde(default)]
+pub struct CollaborationConfig {
+    pub auto_annotate_commits: bool,
+    pub enable_git_notes: bool,
+    pub git_notes_ref: String,
+    pub webhook_url: String,
+    pub webhook_timeout_secs: u64,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+#[serde(default)]
+pub struct IntegrationsConfig {
+    pub slack: SlackConfig,
+    pub discord: DiscordConfig,
+    pub github: GithubConfig,
+    pub gitlab: GitlabConfig,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+#[serde(default)]
+pub struct SlackConfig {
+    pub enabled: bool,
+    pub webhook_url: String,
+    pub bot_token: String,
+    pub channel: String,
+    pub auto_share_on_commit: bool,
+    pub include_digest: bool,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+#[serde(default)]
+pub struct DiscordConfig {
+    pub enabled: bool,
+    pub webhook_url: String,
+    pub auto_share_on_commit: bool,
+    pub include_digest: bool,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+#[serde(default)]
+pub struct GithubConfig {
+    pub enabled: bool,
+    pub token: String,
+    pub api_url: String,
+    pub auto_comment_on_pr: bool,
+    pub update_pr_description: bool,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+#[serde(default)]
+pub struct GitlabConfig {
+    pub enabled: bool,
+    pub token: String,
+    pub api_url: String,
+    pub auto_comment_on_mr: bool,
+    pub update_mr_description: bool,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+#[serde(default)]
 pub struct PrivacyConfig {
     pub offline_mode: bool,
     pub local_cache_only: bool,
@@ -63,6 +128,8 @@ impl Default for AppConfig {
         Self {
             ai: AiConfig::default(),
             capture: CaptureConfig::default(),
+            collaboration: CollaborationConfig::default(),
+            integrations: IntegrationsConfig::default(),
             privacy: PrivacyConfig::default(),
         }
     }
@@ -95,6 +162,77 @@ impl Default for CaptureConfig {
             command_limit: DEFAULT_COMMAND_LIMIT,
             include_environment: true,
             include_analysis: true,
+        }
+    }
+}
+
+impl Default for CollaborationConfig {
+    fn default() -> Self {
+        Self {
+            auto_annotate_commits: true,
+            enable_git_notes: true,
+            git_notes_ref: DEFAULT_GIT_NOTES_REF.to_string(),
+            webhook_url: String::new(),
+            webhook_timeout_secs: DEFAULT_WEBHOOK_TIMEOUT_SECS,
+        }
+    }
+}
+
+impl Default for IntegrationsConfig {
+    fn default() -> Self {
+        Self {
+            slack: SlackConfig::default(),
+            discord: DiscordConfig::default(),
+            github: GithubConfig::default(),
+            gitlab: GitlabConfig::default(),
+        }
+    }
+}
+
+impl Default for SlackConfig {
+    fn default() -> Self {
+        Self {
+            enabled: false,
+            webhook_url: String::new(),
+            bot_token: String::new(),
+            channel: String::new(),
+            auto_share_on_commit: false,
+            include_digest: false,
+        }
+    }
+}
+
+impl Default for DiscordConfig {
+    fn default() -> Self {
+        Self {
+            enabled: false,
+            webhook_url: String::new(),
+            auto_share_on_commit: false,
+            include_digest: false,
+        }
+    }
+}
+
+impl Default for GithubConfig {
+    fn default() -> Self {
+        Self {
+            enabled: false,
+            token: String::new(),
+            api_url: DEFAULT_GITHUB_API_URL.to_string(),
+            auto_comment_on_pr: false,
+            update_pr_description: false,
+        }
+    }
+}
+
+impl Default for GitlabConfig {
+    fn default() -> Self {
+        Self {
+            enabled: false,
+            token: String::new(),
+            api_url: DEFAULT_GITLAB_API_URL.to_string(),
+            auto_comment_on_mr: false,
+            update_mr_description: false,
         }
     }
 }
@@ -149,6 +287,10 @@ mod tests {
         assert_eq!(config.ai.history_depth, 10);
         assert_eq!(config.ai.prompt_char_budget, 12_000);
         assert_eq!(config.capture.command_limit, 25);
+        assert!(config.collaboration.auto_annotate_commits);
+        assert_eq!(config.collaboration.git_notes_ref, "refs/notes/gitwhisper");
+        assert_eq!(config.integrations.github.api_url, "https://api.github.com");
+        assert_eq!(config.integrations.gitlab.api_url, "https://gitlab.com/api/v4");
         assert!(config.capture.include_analysis);
         assert!(config.privacy.local_cache_only);
     }
@@ -172,6 +314,8 @@ mod tests {
         assert_eq!(config.ai.model, "mistral");
         assert_eq!(config.ai.history_depth, 10);
         assert_eq!(config.ai.prompt_char_budget, 12_000);
+        assert!(config.collaboration.enable_git_notes);
+        assert!(!config.integrations.slack.enabled);
         assert!(config.privacy.offline_mode);
         assert_eq!(config.capture.command_limit, 25);
     }
