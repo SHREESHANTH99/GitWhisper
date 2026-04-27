@@ -1,6 +1,14 @@
+pub mod audit_log;
+pub mod auth;
+pub mod bug_predict;
 pub mod explain;
+pub mod knowledge_risk;
 pub mod log;
 pub mod owners;
+pub mod performance;
+pub mod quality;
+pub mod refactor_priority;
 pub mod replay;
+pub mod security;
 pub mod summarize;
 pub mod timeline;

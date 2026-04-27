@@ -30,3 +30,15 @@ pub fn ai_log_path() -> AppResult<PathBuf> {
 pub fn collaboration_log_path() -> AppResult<PathBuf> {
     Ok(log_dir()?.join("collaboration.log"))
 }
+
+pub fn feedback_dir() -> AppResult<PathBuf> {
+    Ok(app_dir()?.join("feedback"))
+}
+
+pub fn feedback_json_path() -> AppResult<PathBuf> {
+    Ok(feedback_dir()?.join("feedback.json"))
+}
+
+pub fn audit_json_path() -> AppResult<PathBuf> {
+    Ok(log_dir()?.join("audit.json"))
+}

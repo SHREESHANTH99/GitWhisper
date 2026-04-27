@@ -15,7 +15,9 @@ Gitwhisper currently includes the major deliverables from the first three phases
 | Phase 1: Context intelligence | Implemented | Semantic diff parsing, intent detection, impact analysis, IDE/review/behavior capture, local caching |
 | Phase 2: AI intelligence | Implemented | Gemini cloud backend, Ollama local backend, hybrid model selection, prompt/context optimization, reasoning-chain prompts, file summaries, ownership insights |
 | Phase 3: Collaboration | Implemented in a practical repo-native form | Post-commit annotations, Git notes, Slack/Discord sharing, GitHub/GitLab review posting, analytics dashboard, JSON/CSV export, wiki generation, ADR generation |
-| Phase 4+ | Not yet implemented | Advanced quality analyzers, predictive bug analysis, enterprise auth, deeper analytics, REPL/query language, monetization features |
+| Phase 4 | Started | Quality, security, performance, bug prediction, knowledge risk, feedback, and refactor-priority analyzers |
+| Phase 5 | Started | Docker foundation, auth module, audit module, and DB abstraction layer |
+| Phase 6+ | Not yet implemented | Deeper analytics, REPL/query language, monetization features |
 
 This README focuses on what is already available in the codebase right now.
 
@@ -34,6 +36,8 @@ This README focuses on what is already available in the codebase right now.
 - Serves a lightweight local team dashboard with ownership, hotspot, trend, and risk views.
 - Exports analytics snapshots as JSON or CSV.
 - Generates markdown wiki pages and ADR-style decision records from captured repository knowledge.
+- Predicts bug-prone files, highlights knowledge-silo risk, and stores explanation feedback.
+- Includes a deployable foundation for auth, audit logging, feedback persistence, and Docker-based local hosting.
 
 ## Quick Start
 
@@ -73,6 +77,19 @@ enable_git_notes = true
 [privacy]
 offline_mode = false
 local_cache_only = true
+
+[database]
+backend = "json"
+postgres_url = ""
+
+[audit]
+enabled = true
+
+[auth]
+enabled = false
+
+[feedback]
+enabled = true
 ```
 
 ### 3. Configure AI
@@ -128,6 +145,12 @@ gitwhisper dashboard --host 127.0.0.1 --port 7878
 | `gitwhisper timeline <file>` | Shows the commit timeline for a file |
 | `gitwhisper explain <file>` | Explains why the file changed using history plus captured context |
 | `gitwhisper summarize <file>` | Generates a file-evolution narrative |
+| `gitwhisper quality <path>` | Analyzes quality risk, churn, complexity, and ownership for a file or directory |
+| `gitwhisper security <path>` | Analyzes heuristic security risk for a file or directory |
+| `gitwhisper performance <path>` | Analyzes heuristic performance risk for a file or directory |
+| `gitwhisper bug-predict [path] --limit 10` | Predicts which files are most bug-prone |
+| `gitwhisper knowledge-risk [path] --limit 10` | Reports ownership concentration and knowledge-silo risk |
+| `gitwhisper refactor-priority [path] --limit 10` | Ranks the files most worth refactoring first |
 | `gitwhisper owners <path> --limit 10` | Shows top contributors for a file or directory |
 
 ### Collaboration and reporting commands
@@ -145,6 +168,12 @@ gitwhisper dashboard --host 127.0.0.1 --port 7878
 | `gitwhisper export --format csv --output exports/snapshot.csv` | Exports analytics snapshot as CSV |
 | `gitwhisper wiki --output wiki` | Generates markdown wiki pages and search index |
 | `gitwhisper adr --output docs/adrs` | Generates ADR markdown files |
+| `gitwhisper feedback <commit> --good|--poor [--correct "..."] [--tags "a,b"]` | Stores explanation feedback for a commit |
+| `gitwhisper feedback-log --limit 20` | Shows recent feedback entries |
+| `gitwhisper feedback-export --format json|csv --output ...` | Exports stored feedback entries |
+| `gitwhisper whoami` | Shows the current resolved auth identity and role |
+| `gitwhisper audit-log --limit 20` | Shows recent audit events |
+| `gitwhisper audit-prune [--days 90]` | Prunes audit events older than the retention window |
 
 `gitwhisper post-commit` also exists, but it is an internal command used by the installed hook.
 
@@ -314,6 +343,65 @@ Gitwhisper can generate project documentation directly from captured repository 
 - wiki output includes `index.md`, per-file pages, per-person pages, and `search-index.json`
 - ADR output includes a `README.md` index and numbered ADR markdown files
 
+### Phase 4: First Quality Analyzer
+
+The first Phase 4 slice is now available through:
+
+```bash
+gitwhisper quality src/auth.rs
+gitwhisper quality src/
+```
+
+This analyzer combines current file contents with Git history and captured commit context to report:
+
+- approximate complexity pressure
+- repeated line-level logic patterns
+- churn hotspots from recent captured diffs
+- repeated bug-fix history
+- ownership concentration and knowledge-silo risk
+- practical refactoring suggestions
+
+Phase 4 now also includes:
+
+```bash
+gitwhisper security src/auth.rs
+gitwhisper performance src/api
+gitwhisper refactor-priority src --limit 10
+```
+
+These reports add:
+
+- security heuristics for secret exposure, injection-prone patterns, process execution, weak crypto markers, and auth-sensitive churn
+- performance heuristics for nested iteration pressure, allocation churn, I/O-heavy control flow, and change hotspots
+- a combined refactor-priority ranking that merges quality, security, and performance risk into one ordered backlog
+- bug prediction based on churn, bug-fix history, complexity, and file maturity
+- knowledge-risk scoring based on ownership concentration and contributor spread
+- feedback capture for explanation quality, backed by the new persistence layer
+
+### Phase 5 foundation
+
+The enterprise foundation is now started with:
+
+```bash
+gitwhisper whoami
+gitwhisper feedback HEAD --good --tags "accurate,helpful"
+gitwhisper feedback-log --limit 10
+gitwhisper audit-log --limit 10
+docker compose up --build
+```
+
+This foundation currently includes:
+
+- a DB abstraction layer with a working JSON backend and a working Postgres backend path
+- a local auth model with role checks for report viewing, feedback, and audit access
+- audit event persistence for feedback activity
+- Docker and Compose files for local deployment with optional Ollama sidecar support
+
+The DB layer currently supports:
+
+- `json` as the default local backend
+- `postgres` when `database.postgres_url` is configured and reachable
+
 ## Captured Commit Context Format
 
 Commit context is stored under:
@@ -466,6 +554,28 @@ update_mr_description = false
 offline_mode = false
 local_cache_only = true
 exclude_files = ["*.key", "*.secret"]
+
+[database]
+backend = "json"            # json | postgres
+path = ".git/gitwhisper/gitwhisper.db"
+postgres_url = ""
+
+[audit]
+enabled = true
+retain_days = 90
+
+[auth]
+enabled = false
+mode = "disabled"           # disabled | local
+default_role = "admin"      # viewer | contributor | admin
+
+[[auth.users]]
+username = "docker-admin"
+role = "admin"
+
+[feedback]
+enabled = true
+allow_anonymous = false
 ```
 
 ## Storage and Outputs
@@ -476,6 +586,9 @@ Gitwhisper currently writes data to these places:
 - `.git/gitwhisper/cache/cache-index.json` for explanation cache metadata
 - `.git/gitwhisper/logs/ai.log` for AI request and fallback logging
 - `.git/gitwhisper/logs/collaboration.log` for annotation and delivery events
+- `.git/gitwhisper/logs/audit.json` for audit events when using the JSON backend
+- `.git/gitwhisper/feedback/feedback.json` for explanation feedback when using the JSON backend
+- PostgreSQL tables `audit_events` and `feedback` when using the Postgres backend
 - Git notes under `refs/notes/gitwhisper` by default
 - user-selected output directories for exports, wiki pages, and ADRs
 
@@ -498,6 +611,53 @@ gitwhisper timeline src/auth.rs
 
 ```bash
 gitwhisper owners src/auth.rs --limit 5
+```
+
+### Check quality risk before refactoring
+
+```bash
+gitwhisper quality src/auth.rs
+gitwhisper quality src/api
+```
+
+### Check security and performance hotspots
+
+```bash
+gitwhisper security src/auth.rs
+gitwhisper performance src/api
+gitwhisper refactor-priority src --limit 10
+```
+
+### Predict bugs and knowledge silos
+
+```bash
+gitwhisper bug-predict src --limit 10
+gitwhisper knowledge-risk src --limit 10
+```
+
+### Record explanation feedback
+
+```bash
+gitwhisper feedback HEAD --good --tags "accurate,helpful"
+gitwhisper feedback HEAD --poor --correct "This was a refactor, not a bug fix"
+gitwhisper feedback-log --limit 10
+gitwhisper feedback-export --format csv --output exports/feedback.csv
+gitwhisper audit-log --limit 10
+gitwhisper audit-prune --days 30
+```
+
+### Run with Docker
+
+```bash
+docker compose up --build
+```
+
+### Use Postgres backend
+
+```toml
+[database]
+backend = "postgres"
+postgres_url = "postgres://postgres:postgres@localhost:5432/gitwhisper"
 ```
 
 ### Annotate the latest commit and store Git notes
@@ -527,7 +687,10 @@ gitwhisper adr --output docs/adrs
 src/
   ai/             cloud/local/hybrid AI backends and prompt optimization
   analysis/       diff parsing, intent detection, impact analysis, behavior patterns
+  audit/          audit event recording
+  auth/           local auth and permission checks
   collectors/     command, environment, IDE, and review-context collection
+  db/             persistence abstraction for feedback and audit data
   generators/     wiki and ADR generation
   integrations/   Slack, Discord, GitHub, and GitLab delivery
   metrics/        analytics snapshot and export
@@ -539,13 +702,15 @@ src/
   history.rs      commit history helpers
   hooks.rs        managed post-commit hook installer
   config.rs       .gitwhisper.toml parsing
+  feedback.rs     explanation feedback workflow
   cli.rs          Clap command definitions
   main.rs         command dispatch
 ```
 
 ## Notes and Limitations
 
-- Phase 4 and later roadmap items are not implemented yet, so this README intentionally does not claim predictive bug analysis, enterprise auth, advanced wellness analytics, or interactive REPL/query features.
+- Phase 4 is still heuristic-driven rather than ML-backed. The bug, security, performance, and knowledge reports are useful now, but they are still rule-based.
+- Phase 5 currently provides a local foundation, not full enterprise SSO or distributed infrastructure. The DB abstraction is active, the JSON backend works now, and Postgres support is available when configured.
 - IDE capture and review metadata are best-effort and depend on local processes, repository remotes, and available provider metadata.
 - Slack, Discord, GitHub, and GitLab integrations require valid configuration and reachable network access.
 - The dashboard is intentionally lightweight and built into the CLI rather than being a separate full frontend application.

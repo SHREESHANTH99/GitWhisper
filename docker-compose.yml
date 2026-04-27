@@ -1,0 +1,42 @@
+version: "3.9"
+
+services:
+  gitwhisper:
+    build:
+      context: .
+      dockerfile: docker/Dockerfile
+    working_dir: /workspace
+    volumes:
+      - ./:/workspace
+    environment:
+      GEMINI_API_KEY: ${GEMINI_API_KEY:-}
+      GITWHISPER_USER: ${GITWHISPER_USER:-docker-admin}
+      GITWHISPER_POSTGRES_URL: ${GITWHISPER_POSTGRES_URL:-postgres://postgres:postgres@postgres:5432/gitwhisper}
+    command: ["dashboard", "--host", "0.0.0.0", "--port", "7878"]
+    ports:
+      - "7878:7878"
+    depends_on:
+      - ollama
+      - postgres
+
+  ollama:
+    image: ollama/ollama:latest
+    ports:
+      - "11434:11434"
+    volumes:
+      - ollama-data:/root/.ollama
+
+  postgres:
+    image: postgres:16
+    environment:
+      POSTGRES_DB: gitwhisper
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres-data:/var/lib/postgresql/data
+
+volumes:
+  ollama-data:
+  postgres-data:

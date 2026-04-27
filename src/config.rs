@@ -16,6 +16,7 @@ const DEFAULT_GIT_NOTES_REF: &str = "refs/notes/gitwhisper";
 const DEFAULT_WEBHOOK_TIMEOUT_SECS: u64 = 10;
 const DEFAULT_GITHUB_API_URL: &str = "https://api.github.com";
 const DEFAULT_GITLAB_API_URL: &str = "https://gitlab.com/api/v4";
+const DEFAULT_DB_PATH: &str = ".git/gitwhisper/gitwhisper.db";
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 #[serde(default)]
@@ -25,6 +26,10 @@ pub struct AppConfig {
     pub collaboration: CollaborationConfig,
     pub integrations: IntegrationsConfig,
     pub privacy: PrivacyConfig,
+    pub database: DatabaseConfig,
+    pub audit: AuditConfig,
+    pub auth: AuthConfig,
+    pub feedback: FeedbackConfig,
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
@@ -123,6 +128,66 @@ pub struct PrivacyConfig {
     pub exclude_files: Vec<String>,
 }
 
+#[derive(Debug, Clone, Serialize, Deserialize)]
+#[serde(default)]
+pub struct DatabaseConfig {
+    pub backend: DatabaseBackend,
+    pub path: String,
+    pub postgres_url: String,
+}
+
+#[derive(Debug, Clone, Copy, Serialize, Deserialize, PartialEq, Eq)]
+#[serde(rename_all = "kebab-case")]
+pub enum DatabaseBackend {
+    Json,
+    Postgres,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+#[serde(default)]
+pub struct AuditConfig {
+    pub enabled: bool,
+    pub retain_days: u32,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+#[serde(default)]
+pub struct AuthConfig {
+    pub enabled: bool,
+    pub mode: AuthMode,
+    pub default_role: UserRole,
+    pub users: Vec<AuthUserConfig>,
+}
+
+#[derive(Debug, Clone, Copy, Serialize, Deserialize, PartialEq, Eq)]
+#[serde(rename_all = "kebab-case")]
+pub enum AuthMode {
+    Disabled,
+    Local,
+}
+
+#[derive(Debug, Clone, Copy, Serialize, Deserialize, PartialEq, Eq)]
+#[serde(rename_all = "kebab-case")]
+pub enum UserRole {
+    Viewer,
+    Contributor,
+    Admin,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+#[serde(default)]
+pub struct AuthUserConfig {
+    pub username: String,
+    pub role: UserRole,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+#[serde(default)]
+pub struct FeedbackConfig {
+    pub enabled: bool,
+    pub allow_anonymous: bool,
+}
+
 impl Default for AppConfig {
     fn default() -> Self {
         Self {
@@ -131,6 +196,10 @@ impl Default for AppConfig {
             collaboration: CollaborationConfig::default(),
             integrations: IntegrationsConfig::default(),
             privacy: PrivacyConfig::default(),
+            database: DatabaseConfig::default(),
+            audit: AuditConfig::default(),
+            auth: AuthConfig::default(),
+            feedback: FeedbackConfig::default(),
         }
     }
 }
@@ -247,6 +316,72 @@ impl Default for PrivacyConfig {
     }
 }
 
+impl Default for DatabaseConfig {
+    fn default() -> Self {
+        Self {
+            backend: DatabaseBackend::Json,
+            path: DEFAULT_DB_PATH.to_string(),
+            postgres_url: String::new(),
+        }
+    }
+}
+
+impl Default for DatabaseBackend {
+    fn default() -> Self {
+        Self::Json
+    }
+}
+
+impl Default for AuditConfig {
+    fn default() -> Self {
+        Self {
+            enabled: true,
+            retain_days: 90,
+        }
+    }
+}
+
+impl Default for AuthConfig {
+    fn default() -> Self {
+        Self {
+            enabled: false,
+            mode: AuthMode::Disabled,
+            default_role: UserRole::Admin,
+            users: Vec::new(),
+        }
+    }
+}
+
+impl Default for AuthMode {
+    fn default() -> Self {
+        Self::Disabled
+    }
+}
+
+impl Default for UserRole {
+    fn default() -> Self {
+        Self::Viewer
+    }
+}
+
+impl Default for AuthUserConfig {
+    fn default() -> Self {
+        Self {
+            username: String::new(),
+            role: UserRole::Viewer,
+        }
+    }
+}
+
+impl Default for FeedbackConfig {
+    fn default() -> Self {
+        Self {
+            enabled: true,
+            allow_anonymous: false,
+        }
+    }
+}
+
 impl AppConfig {
     pub fn load() -> AppResult<Self> {
         let root = crate::git::repo_root()?;
@@ -293,6 +428,10 @@ mod tests {
         assert_eq!(config.integrations.gitlab.api_url, "https://gitlab.com/api/v4");
         assert!(config.capture.include_analysis);
         assert!(config.privacy.local_cache_only);
+        assert_eq!(config.database.backend, super::DatabaseBackend::Json);
+        assert!(config.audit.enabled);
+        assert_eq!(config.auth.mode, super::AuthMode::Disabled);
+        assert!(config.feedback.enabled);
     }
 
     #[test]
@@ -318,5 +457,7 @@ mod tests {
         assert!(!config.integrations.slack.enabled);
         assert!(config.privacy.offline_mode);
         assert_eq!(config.capture.command_limit, 25);
+        assert_eq!(config.database.path, ".git/gitwhisper/gitwhisper.db");
+        assert!(config.database.postgres_url.is_empty());
     }
 }

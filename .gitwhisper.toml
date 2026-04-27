@@ -52,3 +52,25 @@ update_mr_description = false
 offline_mode = false
 local_cache_only = true
 exclude_files = []
+
+[database]
+backend = "json"
+path = ".git/gitwhisper/gitwhisper.db"
+postgres_url = ""
+
+[audit]
+enabled = true
+retain_days = 90
+
+[auth]
+enabled = false
+mode = "disabled"
+default_role = "admin"
+
+[[auth.users]]
+username = "docker-admin"
+role = "admin"
+
+[feedback]
+enabled = true
+allow_anonymous = false

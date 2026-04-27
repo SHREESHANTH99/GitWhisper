@@ -8,7 +8,9 @@ pub enum AppError {
     Io(std::io::Error),
     Json(serde_json::Error),
     Toml(toml::de::Error),
+    TomlSer(toml::ser::Error),
     Http(reqwest::Error),
+    Postgres(postgres::Error),
     Git(String),
 }
 
@@ -25,7 +27,9 @@ impl Display for AppError {
             Self::Io(error) => write!(formatter, "{error}"),
             Self::Json(error) => write!(formatter, "{error}"),
             Self::Toml(error) => write!(formatter, "{error}"),
+            Self::TomlSer(error) => write!(formatter, "{error}"),
             Self::Http(error) => write!(formatter, "{error}"),
+            Self::Postgres(error) => write!(formatter, "{error}"),
             Self::Git(message) => write!(formatter, "{message}"),
         }
     }
@@ -51,8 +55,20 @@ impl From<toml::de::Error> for AppError {
     }
 }
 
+impl From<toml::ser::Error> for AppError {
+    fn from(error: toml::ser::Error) -> Self {
+        Self::TomlSer(error)
+    }
+}
+
 impl From<reqwest::Error> for AppError {
     fn from(error: reqwest::Error) -> Self {
         Self::Http(error)
+    }
+}
+
+impl From<postgres::Error> for AppError {
+    fn from(error: postgres::Error) -> Self {
+        Self::Postgres(error)
     }
 }

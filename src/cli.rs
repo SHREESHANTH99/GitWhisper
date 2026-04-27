@@ -60,6 +60,73 @@ pub enum Commands {
         #[arg(short, long, default_value = "")]
         api_key: String,
     },
+    /// Analyze code quality risk for a file or directory.
+    Quality {
+        path: String,
+    },
+    /// Analyze security risk for a file or directory.
+    Security {
+        path: String,
+    },
+    /// Analyze performance risk for a file or directory.
+    Performance {
+        path: String,
+    },
+    /// Predict which files are most bug-prone.
+    BugPredict {
+        path: Option<String>,
+        #[arg(short, long, default_value_t = 10)]
+        limit: usize,
+    },
+    /// Report knowledge-silo and ownership concentration risk.
+    KnowledgeRisk {
+        path: Option<String>,
+        #[arg(short, long, default_value_t = 10)]
+        limit: usize,
+    },
+    /// Rank refactor priority across a file set.
+    RefactorPriority {
+        path: Option<String>,
+        #[arg(short, long, default_value_t = 10)]
+        limit: usize,
+    },
+    /// Store explanation feedback for a commit.
+    Feedback {
+        commit: String,
+        #[arg(long)]
+        good: bool,
+        #[arg(long)]
+        poor: bool,
+        #[arg(long, default_value = "")]
+        correct: String,
+        #[arg(long, default_value = "")]
+        tags: String,
+    },
+    /// Show recent explanation feedback entries.
+    FeedbackLog {
+        #[arg(short, long, default_value_t = 20)]
+        limit: usize,
+    },
+    /// Export stored feedback entries.
+    FeedbackExport {
+        #[arg(long, default_value = "json")]
+        format: ExportFormat,
+        #[arg(long, default_value = "exports/gitwhisper-feedback.json")]
+        output: String,
+    },
+    #[command(name = "whoami")]
+    /// Show the current authenticated user and role.
+    WhoAmI,
+    /// Show recent audit events.
+    AuditLog {
+        #[arg(short, long, default_value_t = 20)]
+        limit: usize,
+    },
+    /// Prune old audit events.
+    AuditPrune {
+        #[arg(long)]
+        days: Option<u32>,
+    },
     /// Show likely code owners (top contributors) for a file or directory.
     Owners {
         path: String,

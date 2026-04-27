@@ -1,12 +1,16 @@
 mod ai;
 mod analysis;
+mod audit;
+mod auth;
 mod collaboration;
 mod capture;
 mod cli;
 mod collectors;
 mod config;
+mod db;
 mod dashboard;
 mod error;
+mod feedback;
 mod generators;
 mod git;
 mod history;
@@ -98,6 +102,36 @@ fn main() {
             };
             viewer::summarize::summarize_file(&file, key_to_use);
         }
+        Commands::Quality { path } => viewer::quality::show_quality(&path),
+        Commands::Security { path } => viewer::security::show_security(&path),
+        Commands::Performance { path } => viewer::performance::show_performance(&path),
+        Commands::BugPredict { path, limit } => {
+            viewer::bug_predict::show_bug_predictions(path.as_deref(), limit)
+        }
+        Commands::KnowledgeRisk { path, limit } => {
+            viewer::knowledge_risk::show_knowledge_risk(path.as_deref(), limit)
+        }
+        Commands::RefactorPriority { path, limit } => {
+            viewer::refactor_priority::show_refactor_priority(path.as_deref(), limit)
+        }
+        Commands::Feedback {
+            commit,
+            good,
+            poor,
+            correct,
+            tags,
+        } => feedback::show_feedback(&commit, good, poor, &correct, &tags),
+        Commands::FeedbackLog { limit } => feedback::show_recent_feedback(limit),
+        Commands::FeedbackExport { format, output } => {
+            let format = match format {
+                cli::ExportFormat::Json => "json",
+                cli::ExportFormat::Csv => "csv",
+            };
+            feedback::show_feedback_export(&output, format);
+        }
+        Commands::WhoAmI => viewer::auth::show_current_user(),
+        Commands::AuditLog { limit } => viewer::audit_log::show_audit_log(limit),
+        Commands::AuditPrune { days } => viewer::audit_log::prune_audit_log(days),
         Commands::Owners { path, limit } => viewer::owners::show_owners(&path, limit),
         Commands::Dashboard { host, port } => dashboard::serve_dashboard(&host, port),
         Commands::Export { format, output } => {

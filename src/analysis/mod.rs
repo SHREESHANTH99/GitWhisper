@@ -1,7 +1,14 @@
 pub mod behavior_patterns;
+pub mod bug_predictor;
+pub mod codebase_insights;
 pub mod diff_parser;
 pub mod impact_analysis;
 pub mod intent_detection;
+pub mod knowledge_risk;
+pub mod performance_analyzer;
+pub mod quality_analyzer;
+pub mod refactor_prioritizer;
+pub mod security_analyzer;
 
 use serde::{Deserialize, Serialize};
 use std::fmt::{Display, Formatter};
