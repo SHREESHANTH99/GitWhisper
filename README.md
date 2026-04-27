@@ -657,7 +657,7 @@ docker compose up --build
 ```toml
 [database]
 backend = "postgres"
-postgres_url = "postgres://postgres:postgres@localhost:5432/gitwhisper"
+postgres_url = "postgres://<user>:<password>@localhost:5432/gitwhisper"
 ```
 
 ### Annotate the latest commit and store Git notes
