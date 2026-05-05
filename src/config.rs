@@ -1,4 +1,4 @@
-use crate::error::AppResult;
+use crate::error::{AppError, AppResult};
 use serde::{Deserialize, Serialize};
 use std::fs;
 use std::path::Path;
@@ -394,11 +394,48 @@ impl AppConfig {
     }
 
     pub fn load_from_path(path: &Path) -> AppResult<Self> {
-        match fs::read_to_string(path) {
-            Ok(raw) => Ok(toml::from_str::<AppConfig>(&raw)?),
-            Err(error) if error.kind() == std::io::ErrorKind::NotFound => Ok(Self::default()),
-            Err(error) => Err(error.into()),
+        let mut config = match fs::read_to_string(path) {
+            Ok(raw) => toml::from_str::<AppConfig>(&raw)?,
+            Err(error) if error.kind() == std::io::ErrorKind::NotFound => Self::default(),
+            Err(error) => return Err(error.into()),
+        };
+        config.apply_env_overrides()?;
+        Ok(config)
+    }
+
+    fn apply_env_overrides(&mut self) -> AppResult<()> {
+        if let Some(backend) =
+            read_env_first(&["GITWHISPER_DATABASE_BACKEND", "GITWHISPER_DB_BACKEND"])
+        {
+            self.database.backend = parse_database_backend(&backend)?;
         }
+
+        if let Some(path) = read_env_first(&["GITWHISPER_DATABASE_PATH", "GITWHISPER_DB_PATH"]) {
+            self.database.path = path;
+        }
+
+        if let Some(url) = read_env_first(&["GITWHISPER_POSTGRES_URL", "GITWHISPER_DATABASE_URL"]) {
+            self.database.postgres_url = url;
+        }
+
+        Ok(())
+    }
+}
+
+fn read_env_first(keys: &[&str]) -> Option<String> {
+    keys.iter()
+        .find_map(|key| std::env::var(key).ok())
+        .map(|value| value.trim().to_string())
+        .filter(|value| !value.is_empty())
+}
+
+fn parse_database_backend(raw: &str) -> AppResult<DatabaseBackend> {
+    match raw.trim().to_ascii_lowercase().as_str() {
+        "json" => Ok(DatabaseBackend::Json),
+        "postgres" | "postgresql" => Ok(DatabaseBackend::Postgres),
+        other => Err(AppError::message(format!(
+            "Unsupported database backend `{other}`. Use `json` or `postgres`."
+        ))),
     }
 }
 
@@ -425,7 +462,10 @@ mod tests {
         assert!(config.collaboration.auto_annotate_commits);
         assert_eq!(config.collaboration.git_notes_ref, "refs/notes/gitwhisper");
         assert_eq!(config.integrations.github.api_url, "https://api.github.com");
-        assert_eq!(config.integrations.gitlab.api_url, "https://gitlab.com/api/v4");
+        assert_eq!(
+            config.integrations.gitlab.api_url,
+            "https://gitlab.com/api/v4"
+        );
         assert!(config.capture.include_analysis);
         assert!(config.privacy.local_cache_only);
         assert_eq!(config.database.backend, super::DatabaseBackend::Json);
@@ -459,5 +499,18 @@ mod tests {
         assert_eq!(config.capture.command_limit, 25);
         assert_eq!(config.database.path, ".git/gitwhisper/gitwhisper.db");
         assert!(config.database.postgres_url.is_empty());
+    }
+
+    #[test]
+    fn parses_database_backend_names() {
+        assert_eq!(
+            super::parse_database_backend("json").expect("json should parse"),
+            super::DatabaseBackend::Json
+        );
+        assert_eq!(
+            super::parse_database_backend("postgresql").expect("postgresql should parse"),
+            super::DatabaseBackend::Postgres
+        );
+        assert!(super::parse_database_backend("sqlite").is_err());
     }
 }

@@ -52,7 +52,10 @@ pub fn analyze_target(path: &str) -> AppResult<QualityReport> {
     let overall_risk = average_risk(&file_reports);
 
     if is_file {
-        let report = file_reports.into_iter().next().expect("single file report exists");
+        let report = file_reports
+            .into_iter()
+            .next()
+            .expect("single file report exists");
         return Ok(QualityReport {
             target: normalized,
             files_analyzed: 1,
@@ -274,7 +277,9 @@ fn build_directory_findings(file_reports: &[FileQualityReport]) -> Vec<String> {
     }
 
     if findings.is_empty() {
-        findings.push("No broad directory-level quality risk stands out from current heuristics.".to_string());
+        findings.push(
+            "No broad directory-level quality risk stands out from current heuristics.".to_string(),
+        );
     }
 
     findings

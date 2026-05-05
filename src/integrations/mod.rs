@@ -31,7 +31,9 @@ pub fn auto_deliver_commit_report(config: &AppConfig, report: &CommitReport) -> 
     let mut errors = Vec::new();
 
     if config.integrations.slack.enabled && config.integrations.slack.auto_share_on_commit {
-        if let Err(error) = slack::send_commit(&config.integrations.slack, report, commit_url.as_deref()) {
+        if let Err(error) =
+            slack::send_commit(&config.integrations.slack, report, commit_url.as_deref())
+        {
             errors.push(format!("slack: {error}"));
         }
     }
@@ -45,18 +47,24 @@ pub fn auto_deliver_commit_report(config: &AppConfig, report: &CommitReport) -> 
     }
 
     if config.integrations.github.enabled && config.integrations.github.auto_comment_on_pr {
-        if let Some(remote) = remote.as_ref().filter(|repo| repo.provider == HostingProvider::Github)
+        if let Some(remote) = remote
+            .as_ref()
+            .filter(|repo| repo.provider == HostingProvider::Github)
         {
-            if let Err(error) = github::publish_review(&config.integrations.github, remote, report) {
+            if let Err(error) = github::publish_review(&config.integrations.github, remote, report)
+            {
                 errors.push(format!("github: {error}"));
             }
         }
     }
 
     if config.integrations.gitlab.enabled && config.integrations.gitlab.auto_comment_on_mr {
-        if let Some(remote) = remote.as_ref().filter(|repo| repo.provider == HostingProvider::Gitlab)
+        if let Some(remote) = remote
+            .as_ref()
+            .filter(|repo| repo.provider == HostingProvider::Gitlab)
         {
-            if let Err(error) = gitlab::publish_review(&config.integrations.gitlab, remote, report) {
+            if let Err(error) = gitlab::publish_review(&config.integrations.gitlab, remote, report)
+            {
                 errors.push(format!("gitlab: {error}"));
             }
         }
@@ -116,17 +124,24 @@ fn share_commit_inner(provider: &str, commit: Option<&str>, api_key: &str) -> Ap
 fn publish_review_inner(provider: &str, commit: Option<&str>, api_key: &str) -> AppResult<String> {
     let config = AppConfig::load()?;
     let report = crate::collaboration::prepare_commit_report(commit, api_key, false)?;
-    let remote = current_remote_repository()
-        .ok_or_else(|| AppError::message("Could not resolve the repository remote from `origin`."))?;
+    let remote = current_remote_repository().ok_or_else(|| {
+        AppError::message("Could not resolve the repository remote from `origin`.")
+    })?;
 
     match provider {
         "github" => {
             github::publish_review(&config.integrations.github, &remote, &report)?;
-            Ok(format!("Published review note for commit {} to GitHub PR.", report.commit))
+            Ok(format!(
+                "Published review note for commit {} to GitHub PR.",
+                report.commit
+            ))
         }
         "gitlab" => {
             gitlab::publish_review(&config.integrations.gitlab, &remote, &report)?;
-            Ok(format!("Published review note for commit {} to GitLab MR.", report.commit))
+            Ok(format!(
+                "Published review note for commit {} to GitLab MR.",
+                report.commit
+            ))
         }
         other => Err(AppError::message(format!(
             "Unsupported review provider `{other}`. Use `github` or `gitlab`."
@@ -242,4 +257,3 @@ mod tests {
         assert_eq!(remote.repo, "project");
     }
 }
-

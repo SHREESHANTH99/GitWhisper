@@ -65,20 +65,22 @@ pub fn send_digest(config: &DiscordConfig, period: &str, digest: &str) -> AppRes
 
 fn ensure_configured(config: &DiscordConfig) -> AppResult<()> {
     if !config.enabled {
-        return Err(AppError::message("Discord integration is disabled in `.gitwhisper.toml`."));
+        return Err(AppError::message(
+            "Discord integration is disabled in `.gitwhisper.toml`.",
+        ));
     }
 
     if config.webhook_url.trim().is_empty() {
-        return Err(AppError::message("Discord requires `integrations.discord.webhook_url`."));
+        return Err(AppError::message(
+            "Discord requires `integrations.discord.webhook_url`.",
+        ));
     }
 
     Ok(())
 }
 
 fn client() -> AppResult<Client> {
-    Ok(Client::builder()
-        .timeout(Duration::from_secs(15))
-        .build()?)
+    Ok(Client::builder().timeout(Duration::from_secs(15)).build()?)
 }
 
 fn truncate(input: &str, max_len: usize) -> String {
@@ -90,4 +92,3 @@ fn truncate(input: &str, max_len: usize) -> String {
         format!("{}...", input.chars().take(max_len - 3).collect::<String>())
     }
 }
-

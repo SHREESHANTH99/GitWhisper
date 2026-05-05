@@ -90,7 +90,10 @@ pub fn analyze_file(root: &Path, normalized_file: &str) -> AppResult<FileInsight
     let owners = crate::git::owners_for_path(normalized_file, 10).unwrap_or_default();
 
     Ok(FileInsight {
-        approx_loc: content.lines().filter(|line| !line.trim().is_empty()).count(),
+        approx_loc: content
+            .lines()
+            .filter(|line| !line.trim().is_empty())
+            .count(),
         approx_complexity: estimate_complexity(&content),
         duplicate_lines: count_duplicate_lines(&content),
         recent_churn: recent_churn(&history, normalized_file),
@@ -116,7 +119,8 @@ pub fn estimate_complexity(content: &str) -> u32 {
         }
 
         complexity += keyword_hits(trimmed, &["if ", "else if", "match ", "case ", "when "]) as u32;
-        complexity += keyword_hits(trimmed, &["for ", "while ", "loop ", "catch ", "except "]) as u32;
+        complexity +=
+            keyword_hits(trimmed, &["for ", "while ", "loop ", "catch ", "except "]) as u32;
         complexity += keyword_hits(trimmed, &["&&", "||"]) as u32;
 
         if trimmed.contains('?') && !trimmed.starts_with("///") {
@@ -234,7 +238,10 @@ fn looks_binary(path: &Path) -> bool {
 }
 
 fn keyword_hits(line: &str, needles: &[&str]) -> usize {
-    needles.iter().map(|needle| line.matches(needle).count()).sum()
+    needles
+        .iter()
+        .map(|needle| line.matches(needle).count())
+        .sum()
 }
 
 #[cfg(test)]

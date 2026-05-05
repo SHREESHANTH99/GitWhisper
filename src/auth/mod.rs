@@ -28,7 +28,9 @@ pub fn current_user(config: &crate::config::AppConfig) -> AppResult<AuthContext>
 
     let username = std::env::var("GITWHISPER_USER")
         .or_else(|_| std::env::var("USERNAME"))
-        .map_err(|_| AppError::message("Authentication is enabled but no user identity was found."))?;
+        .map_err(|_| {
+            AppError::message("Authentication is enabled but no user identity was found.")
+        })?;
 
     if let Some(user) = config
         .auth

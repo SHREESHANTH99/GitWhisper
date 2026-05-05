@@ -19,8 +19,9 @@ pub fn capture_context() {
 }
 
 pub fn capture_head_context() -> AppResult<CaptureResult> {
-    let config = crate::config::AppConfig::load()
-        .map_err(|error| crate::error::AppError::message(format!("Failed to load .gitwhisper.toml: {error}")))?;
+    let config = crate::config::AppConfig::load().map_err(|error| {
+        crate::error::AppError::message(format!("Failed to load .gitwhisper.toml: {error}"))
+    })?;
 
     let commit = crate::git::short_commit_hash()?;
     let timestamp = chrono::Utc::now().to_rfc3339();
@@ -78,8 +79,9 @@ pub fn capture_head_context() -> AppResult<CaptureResult> {
         analysis,
     };
 
-    let path = crate::storage::save::save_context(&context)
-        .map_err(|error| crate::error::AppError::message(format!("Failed to save commit context: {error}")))?;
+    let path = crate::storage::save::save_context(&context).map_err(|error| {
+        crate::error::AppError::message(format!("Failed to save commit context: {error}"))
+    })?;
 
     Ok(CaptureResult { commit, path })
 }

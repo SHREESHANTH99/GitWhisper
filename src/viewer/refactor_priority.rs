@@ -8,10 +8,7 @@ pub fn show_refactor_priority(path: Option<&str>, limit: usize) {
         }
     };
 
-    println!(
-        "Refactor Priority Report for {}\n",
-        report.target
-    );
+    println!("Refactor Priority Report for {}\n", report.target);
     println!(
         "Files ranked: {} | Showing top {}\n",
         report.files_analyzed,

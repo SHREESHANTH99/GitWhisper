@@ -156,10 +156,16 @@ pub fn build_explain_prompt(
     prompt
 }
 
-pub fn build_file_evolution_prompt(file: &str, history: &[HistoryEntry], detail: PromptDetail) -> String {
+pub fn build_file_evolution_prompt(
+    file: &str,
+    history: &[HistoryEntry],
+    detail: PromptDetail,
+) -> String {
     let mut prompt = String::new();
     prompt.push_str("You are helping a developer understand how a file evolved over time.\n");
-    prompt.push_str("Only make claims supported by the evidence. If uncertain, use probabilistic language.\n");
+    prompt.push_str(
+        "Only make claims supported by the evidence. If uncertain, use probabilistic language.\n",
+    );
     prompt.push_str("Do your reasoning internally, but only output the final summary.\n\n");
     prompt.push_str(&format!("File: {file}\n\n"));
 
@@ -222,4 +228,3 @@ fn compact_text(input: &str, max_len: usize) -> String {
         format!("{prefix}...")
     }
 }
-

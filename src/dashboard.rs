@@ -11,8 +11,9 @@ pub fn serve_dashboard(host: &str, port: u16) {
 
 fn serve_dashboard_inner(host: &str, port: u16) -> AppResult<()> {
     let address = format!("{host}:{port}");
-    let listener = TcpListener::bind(&address)
-        .map_err(|error| AppError::message(format!("Failed to bind dashboard on {address}: {error}")))?;
+    let listener = TcpListener::bind(&address).map_err(|error| {
+        AppError::message(format!("Failed to bind dashboard on {address}: {error}"))
+    })?;
 
     println!("Gitwhisper dashboard running at http://{address}");
 
@@ -37,10 +38,7 @@ fn handle_connection(stream: &mut TcpStream) -> AppResult<()> {
 
     let request = String::from_utf8_lossy(&buffer[..read]);
     let first_line = request.lines().next().unwrap_or_default();
-    let path = first_line
-        .split_whitespace()
-        .nth(1)
-        .unwrap_or("/");
+    let path = first_line.split_whitespace().nth(1).unwrap_or("/");
 
     match path {
         "/" => respond_html(stream, &render_dashboard_page())?,
@@ -78,7 +76,12 @@ fn respond_text(stream: &mut TcpStream, body: &str) -> AppResult<()> {
 }
 
 fn respond_not_found(stream: &mut TcpStream) -> AppResult<()> {
-    respond(stream, "404 Not Found", "text/plain; charset=utf-8", "Not found")
+    respond(
+        stream,
+        "404 Not Found",
+        "text/plain; charset=utf-8",
+        "Not found",
+    )
 }
 
 fn respond(stream: &mut TcpStream, status: &str, content_type: &str, body: &str) -> AppResult<()> {
@@ -349,4 +352,3 @@ fn render_dashboard_page() -> String {
 </html>"#;
     html.to_string()
 }
-

@@ -1,4 +1,6 @@
-use crate::analysis::{codebase_insights, performance_analyzer, quality_analyzer, security_analyzer};
+use crate::analysis::{
+    codebase_insights, performance_analyzer, quality_analyzer, security_analyzer,
+};
 use crate::error::AppResult;
 
 #[derive(Debug, Clone)]
@@ -53,7 +55,9 @@ pub fn analyze_target(path: &str, limit: usize) -> AppResult<RefactorPriorityRep
                 .or_else(|| quality.suggestions.first())
                 .or_else(|| performance.suggestions.first())
                 .cloned()
-                .unwrap_or_else(|| "Review the file and simplify its highest-risk behavior first.".to_string());
+                .unwrap_or_else(|| {
+                    "Review the file and simplify its highest-risk behavior first.".to_string()
+                });
 
             Some(RefactorPriorityItem {
                 path: file.clone(),

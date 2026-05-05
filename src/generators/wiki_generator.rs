@@ -24,10 +24,7 @@ fn generate_wiki_inner(output_dir: &str) -> AppResult<PathBuf> {
 
     let mut index = String::new();
     index.push_str("# Gitwhisper Wiki\n\n");
-    index.push_str(&format!(
-        "Generated: {}\n\n",
-        snapshot.generated_at
-    ));
+    index.push_str(&format!("Generated: {}\n\n", snapshot.generated_at));
     index.push_str("## Overview\n\n");
     index.push_str(&format!(
         "- Commits captured: {}\n- Contributors: {}\n- Files touched: {}\n\n",
@@ -123,7 +120,11 @@ fn write_file_page(files_dir: &Path, file: &str) -> AppResult<()> {
     Ok(())
 }
 
-fn write_person_page(people_dir: &Path, author: &str, contexts: &[crate::storage::context::CommitContext]) -> AppResult<()> {
+fn write_person_page(
+    people_dir: &Path,
+    author: &str,
+    contexts: &[crate::storage::context::CommitContext],
+) -> AppResult<()> {
     let mut per_file: HashMap<String, usize> = HashMap::new();
     let mut commits = Vec::new();
 
@@ -186,4 +187,3 @@ fn slugify(input: &str) -> String {
 
     output.trim_matches('-').to_string()
 }
-

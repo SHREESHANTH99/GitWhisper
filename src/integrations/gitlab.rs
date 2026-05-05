@@ -23,7 +23,10 @@ pub fn publish_review(
         project,
         merge_request.iid
     );
-    let response = client.post(notes_url).json(&json!({ "body": body })).send()?;
+    let response = client
+        .post(notes_url)
+        .json(&json!({ "body": body }))
+        .send()?;
     if !response.status().is_success() {
         return Err(AppError::message(format!(
             "GitLab MR note failed with status {}.",
@@ -85,7 +88,9 @@ fn find_open_merge_request(
         )));
     }
 
-    let mrs = response.json::<Vec<GitlabMergeRequest>>().unwrap_or_default();
+    let mrs = response
+        .json::<Vec<GitlabMergeRequest>>()
+        .unwrap_or_default();
     mrs.into_iter()
         .next()
         .ok_or_else(|| AppError::message(format!("No open GitLab MR found for branch `{branch}`.")))
@@ -125,11 +130,15 @@ fn append_section(existing: &str, title: &str, section: &str) -> String {
 
 fn ensure_configured(config: &GitlabConfig) -> AppResult<()> {
     if !config.enabled {
-        return Err(AppError::message("GitLab integration is disabled in `.gitwhisper.toml`."));
+        return Err(AppError::message(
+            "GitLab integration is disabled in `.gitwhisper.toml`.",
+        ));
     }
 
     if config.token.trim().is_empty() {
-        return Err(AppError::message("GitLab integration requires `integrations.gitlab.token`."));
+        return Err(AppError::message(
+            "GitLab integration requires `integrations.gitlab.token`.",
+        ));
     }
 
     Ok(())
@@ -147,4 +156,3 @@ fn client(config: &GitlabConfig) -> AppResult<Client> {
         .default_headers(headers)
         .build()?)
 }
-

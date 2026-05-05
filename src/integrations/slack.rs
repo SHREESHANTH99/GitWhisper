@@ -5,13 +5,14 @@ use reqwest::blocking::Client;
 use serde_json::json;
 use std::time::Duration;
 
-pub fn send_commit(config: &SlackConfig, report: &CommitReport, commit_url: Option<&str>) -> AppResult<()> {
+pub fn send_commit(
+    config: &SlackConfig,
+    report: &CommitReport,
+    commit_url: Option<&str>,
+) -> AppResult<()> {
     ensure_configured(config)?;
 
-    let text = format!(
-        "Commit explained: {} | {}",
-        report.commit, report.summary
-    );
+    let text = format!("Commit explained: {} | {}", report.commit, report.summary);
     let mut blocks = vec![
         json!({
             "type": "header",
@@ -91,7 +92,9 @@ fn post_message(config: &SlackConfig, payload: serde_json::Value) -> AppResult<(
             }))
             .send()?;
 
-        let value = response.json::<serde_json::Value>().unwrap_or_else(|_| json!({}));
+        let value = response
+            .json::<serde_json::Value>()
+            .unwrap_or_else(|_| json!({}));
         if value.get("ok").and_then(|ok| ok.as_bool()) == Some(true) {
             Ok(())
         } else {
@@ -119,7 +122,9 @@ fn post_message(config: &SlackConfig, payload: serde_json::Value) -> AppResult<(
 
 fn ensure_configured(config: &SlackConfig) -> AppResult<()> {
     if !config.enabled {
-        return Err(AppError::message("Slack integration is disabled in `.gitwhisper.toml`."));
+        return Err(AppError::message(
+            "Slack integration is disabled in `.gitwhisper.toml`.",
+        ));
     }
 
     if config.webhook_url.trim().is_empty()
@@ -134,13 +139,14 @@ fn ensure_configured(config: &SlackConfig) -> AppResult<()> {
 }
 
 fn client() -> AppResult<Client> {
-    Ok(Client::builder()
-        .timeout(Duration::from_secs(15))
-        .build()?)
+    Ok(Client::builder().timeout(Duration::from_secs(15)).build()?)
 }
 
 fn escape_markdown(input: &str) -> String {
-    input.replace('&', "&amp;").replace('<', "&lt;").replace('>', "&gt;")
+    input
+        .replace('&', "&amp;")
+        .replace('<', "&lt;")
+        .replace('>', "&gt;")
 }
 
 trait SourceLabel {

@@ -1,4 +1,6 @@
-use crate::analysis::{codebase_insights, performance_analyzer, quality_analyzer, security_analyzer};
+use crate::analysis::{
+    codebase_insights, performance_analyzer, quality_analyzer, security_analyzer,
+};
 use crate::error::AppResult;
 
 #[derive(Debug, Clone)]

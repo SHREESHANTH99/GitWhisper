@@ -46,7 +46,10 @@ pub fn analyze_target(path: &str) -> AppResult<SecurityReport> {
     let overall_risk = average_risk(&file_reports);
 
     if is_file {
-        let report = file_reports.into_iter().next().expect("single file report exists");
+        let report = file_reports
+            .into_iter()
+            .next()
+            .expect("single file report exists");
         return Ok(SecurityReport {
             target: normalized,
             files_analyzed: 1,
@@ -89,29 +92,72 @@ pub(crate) fn report_for_insight(
         looks_assignment
             && contains_any(
                 line,
-                &["api_key", "secret_key", "password", "token", "private_key", "aws_secret_access_key"],
+                &[
+                    "api_key",
+                    "secret_key",
+                    "password",
+                    "token",
+                    "private_key",
+                    "aws_secret_access_key",
+                ],
             )
             && !is_pattern_literal(line)
     });
     let injection_hits = count_lines(&lowered, |line| {
         (contains_any(
             line,
-            &["select ", "insert into", "update ", "delete from", "query(", "execute("],
+            &[
+                "select ",
+                "insert into",
+                "update ",
+                "delete from",
+                "query(",
+                "execute(",
+            ],
         ) && contains_any(line, &["format!", "+", "{", "$", "%s"])
             && !is_pattern_literal(line))
             || contains_any(line, &["raw_query", "unsafe_sql"])
     });
     let shell_execution_hits = count_lines(&lowered, |line| {
-        contains_any(line, &["command::new(", "exec(", "system(", "popen(", "spawn(", "subprocess."])
-            && !is_pattern_literal(line)
+        contains_any(
+            line,
+            &[
+                "command::new(",
+                "exec(",
+                "system(",
+                "popen(",
+                "spawn(",
+                "subprocess.",
+            ],
+        ) && !is_pattern_literal(line)
     });
     let crypto_hits = count_lines(&lowered, |line| {
-        contains_any(line, &["md5", "sha1", "des", "rc4", "math.random", "weak_rng", "insecure"])
-            && !is_pattern_literal(line)
+        contains_any(
+            line,
+            &[
+                "md5",
+                "sha1",
+                "des",
+                "rc4",
+                "math.random",
+                "weak_rng",
+                "insecure",
+            ],
+        ) && !is_pattern_literal(line)
     });
     let auth_hits = count_lines(&lowered, |line| {
-        contains_any(line, &["auth", "token", "jwt", "session", "password", "oauth", "permission"])
-            && !is_pattern_literal(line)
+        contains_any(
+            line,
+            &[
+                "auth",
+                "token",
+                "jwt",
+                "session",
+                "password",
+                "oauth",
+                "permission",
+            ],
+        ) && !is_pattern_literal(line)
     });
 
     let mut findings = Vec::new();
@@ -211,7 +257,10 @@ pub(crate) fn report_for_insight(
 }
 
 fn count_lines(content: &str, predicate: impl Fn(&str) -> bool) -> usize {
-    content.lines().filter(|line| predicate(line.trim())).count()
+    content
+        .lines()
+        .filter(|line| predicate(line.trim()))
+        .count()
 }
 
 fn contains_any(line: &str, patterns: &[&str]) -> bool {
@@ -242,7 +291,10 @@ fn build_findings(file_reports: &[FileSecurityReport]) -> Vec<String> {
         .take(4)
         .collect::<Vec<_>>();
     if risky_files.is_empty() {
-        return vec!["No broad directory-level security hotspot stands out from current heuristics.".to_string()];
+        return vec![
+            "No broad directory-level security hotspot stands out from current heuristics."
+                .to_string(),
+        ];
     }
 
     vec![format!(
@@ -254,7 +306,9 @@ fn build_findings(file_reports: &[FileSecurityReport]) -> Vec<String> {
 fn build_suggestions(file_reports: &[FileSecurityReport]) -> Vec<String> {
     let top = file_reports.iter().take(3).collect::<Vec<_>>();
     if top.is_empty() {
-        return vec!["Keep collecting commit context to improve future security reports.".to_string()];
+        return vec![
+            "Keep collecting commit context to improve future security reports.".to_string(),
+        ];
     }
 
     vec![format!(
@@ -274,7 +328,13 @@ mod tests {
     fn counts_security_markers() {
         let content = "api_key=1\npassword = 2\nCommand::new(\"sh\")";
         let lowered = content.to_ascii_lowercase();
-        assert_eq!(count_lines(&lowered, |line| contains_any(line, &["api_key", "password", "command::new("])), 3);
+        assert_eq!(
+            count_lines(&lowered, |line| contains_any(
+                line,
+                &["api_key", "password", "command::new("]
+            )),
+            3
+        );
     }
 
     #[test]

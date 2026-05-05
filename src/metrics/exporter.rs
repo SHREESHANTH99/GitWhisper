@@ -90,4 +90,3 @@ fn csv_escape(value: &str) -> String {
     let escaped = value.replace('"', "\"\"");
     format!("\"{escaped}\"")
 }
-

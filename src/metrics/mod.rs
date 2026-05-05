@@ -88,11 +88,7 @@ pub fn build_digest(period: &str) -> crate::error::AppResult<String> {
         .collect::<Vec<_>>();
 
     let snapshot = collect_snapshot_from_contexts(&filtered);
-    let title = if period == "daily" {
-        "Daily"
-    } else {
-        "Weekly"
-    };
+    let title = if period == "daily" { "Daily" } else { "Weekly" };
 
     let mut text = format!(
         "{} Gitwhisper Digest\nGenerated: {}\n\n",
@@ -281,10 +277,7 @@ fn collect_snapshot_from_contexts(contexts: &[CommitContext]) -> AnalyticsSnapsh
             risks.push(RiskMetric {
                 kind: "broad-change".to_string(),
                 subject: commit.commit.clone(),
-                detail: format!(
-                    "{} touched {} files",
-                    commit.subject, commit.files_changed
-                ),
+                detail: format!("{} touched {} files", commit.subject, commit.files_changed),
             });
         }
     }

@@ -7,10 +7,7 @@ pub fn show_quality(path: &str) {
         }
     };
 
-    println!(
-        "Code Quality Report for {}\n",
-        report.target
-    );
+    println!("Code Quality Report for {}\n", report.target);
     println!(
         "Overall risk: {}/100 | Files analyzed: {}\n",
         report.overall_risk, report.files_analyzed
@@ -40,8 +37,7 @@ pub fn show_quality(path: &str) {
         if file_report.duplicate_lines > 0 || file_report.commit_count > 0 {
             println!(
                 "  Signals: {} duplicate lines | {} recent commits",
-                file_report.duplicate_lines,
-                file_report.commit_count
+                file_report.duplicate_lines, file_report.commit_count
             );
         }
 

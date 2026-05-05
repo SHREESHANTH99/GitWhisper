@@ -7,7 +7,8 @@ pub fn show_audit_log(limit: usize) {
         }
     };
 
-    if let Err(error) = crate::auth::ensure_permission(&config, crate::auth::Permission::ReadAudit) {
+    if let Err(error) = crate::auth::ensure_permission(&config, crate::auth::Permission::ReadAudit)
+    {
         eprintln!("{error}");
         return;
     }

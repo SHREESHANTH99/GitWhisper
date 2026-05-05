@@ -67,4 +67,3 @@ pub fn show_owners(path: &str, limit: usize) {
         }
     }
 }
-

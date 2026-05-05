@@ -36,8 +36,7 @@ fi
 {end}
 "#,
         begin = BEGIN_MARKER,
-        fallback = fallback_path
-        ,
+        fallback = fallback_path,
         end = END_MARKER
     );
 

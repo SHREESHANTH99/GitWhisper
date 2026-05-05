@@ -24,7 +24,10 @@ pub fn publish_review(
         pull.number
     );
 
-    let response = client.post(comment_url).json(&json!({ "body": body })).send()?;
+    let response = client
+        .post(comment_url)
+        .json(&json!({ "body": body }))
+        .send()?;
     if !response.status().is_success() {
         return Err(AppError::message(format!(
             "GitHub PR comment failed with status {}.",
@@ -40,8 +43,15 @@ pub fn publish_review(
             remote.repo,
             pull.number
         );
-        let merged = append_section(pull.body.unwrap_or_default().as_str(), "Gitwhisper Review", &body);
-        let response = client.patch(update_url).json(&json!({ "body": merged })).send()?;
+        let merged = append_section(
+            pull.body.unwrap_or_default().as_str(),
+            "Gitwhisper Review",
+            &body,
+        );
+        let response = client
+            .patch(update_url)
+            .json(&json!({ "body": merged }))
+            .send()?;
         if !response.status().is_success() {
             return Err(AppError::message(format!(
                 "GitHub PR description update failed with status {}.",
@@ -118,7 +128,10 @@ fn render_review_body(report: &CommitReport) -> String {
     if !report.related_history.is_empty() {
         body.push_str("**Related history**\n");
         for entry in report.related_history.iter().take(3) {
-            body.push_str(&format!("- `{}` {} ({})\n", entry.short_hash, entry.subject, entry.file));
+            body.push_str(&format!(
+                "- `{}` {} ({})\n",
+                entry.short_hash, entry.subject, entry.file
+            ));
         }
     }
 
@@ -138,11 +151,15 @@ fn append_section(existing: &str, title: &str, section: &str) -> String {
 
 fn ensure_configured(config: &GithubConfig) -> AppResult<()> {
     if !config.enabled {
-        return Err(AppError::message("GitHub integration is disabled in `.gitwhisper.toml`."));
+        return Err(AppError::message(
+            "GitHub integration is disabled in `.gitwhisper.toml`.",
+        ));
     }
 
     if config.token.trim().is_empty() {
-        return Err(AppError::message("GitHub integration requires `integrations.github.token`."));
+        return Err(AppError::message(
+            "GitHub integration requires `integrations.github.token`.",
+        ));
     }
 
     Ok(())

@@ -1,514 +1,342 @@
-# Gitwhisper
+# GitWhisper
 
-AI-powered Git commit intelligence for developers and teams.
+<p align="center">
+  <img src="docs/assets/gitwhisper-hero.svg" alt="GitWhisper project banner" width="100%">
+</p>
 
-Gitwhisper captures commit-time context, analyzes diffs semantically, infers likely developer intent, and uses AI to explain how files and features evolved. It is built as a Rust CLI and is designed to stay useful even when cloud AI is unavailable by supporting local and heuristic fallbacks.
+<p align="center">
+  <b>AI-powered Git intelligence for developers and teams.</b><br/>
+  GitWhisper captures commit context, analyzes change intent, explains code evolution, and turns raw Git history into practical engineering insight.
+</p>
 
-All command examples below assume the binary is installed as `gitwhisper`. During development, you can run the same commands with `cargo run -- <command>`.
+<p align="center">
+  <a href="#quick-start">Quick Start</a> |
+  <a href="#what-is-built-now">Built Now</a> |
+  <a href="#pipelines-and-flow">Pipelines</a> |
+  <a href="#commands">Commands</a> |
+  <a href="#configuration">Configuration</a> |
+  <a href="#docker-and-postgres">Docker</a> |
+  <a href="#architecture">Architecture</a>
+</p>
 
-## Current Status
+---
 
-Gitwhisper currently includes the major deliverables from the first three phases of the roadmap:
+## Why GitWhisper Exists
 
-| Phase | Status | Implemented today |
+Git already tells you what changed. GitWhisper helps answer the questions that usually live in a senior engineer's head:
+
+- Why did this file change?
+- What kind of change was this: feature, fix, refactor, security, performance, docs, or dependency work?
+- What other files and modules might be affected?
+- Which files are becoming risky because of churn, complexity, bugs, or single-person ownership?
+- What should reviewers pay attention to before merging?
+- How can a team preserve knowledge without manually writing documentation after every commit?
+
+GitWhisper is a Rust CLI that stays useful in both solo and team workflows. It supports local JSON storage by default, a live-tested PostgreSQL backend for team deployments, AI explanations through cloud or local models, and heuristic analysis when AI is unavailable.
+
+---
+
+## What Is Built Now
+
+GitWhisper currently includes the major working pieces from Phases 1 through 5 foundation work.
+
+| Area | Status | What exists today |
 | --- | --- | --- |
-| Phase 1: Context intelligence | Implemented | Semantic diff parsing, intent detection, impact analysis, IDE/review/behavior capture, local caching |
-| Phase 2: AI intelligence | Implemented | Gemini cloud backend, Ollama local backend, hybrid model selection, prompt/context optimization, reasoning-chain prompts, file summaries, ownership insights |
-| Phase 3: Collaboration | Implemented in a practical repo-native form | Post-commit annotations, Git notes, Slack/Discord sharing, GitHub/GitLab review posting, analytics dashboard, JSON/CSV export, wiki generation, ADR generation |
-| Phase 4 | Started | Quality, security, performance, bug prediction, knowledge risk, feedback, and refactor-priority analyzers |
-| Phase 5 | Started | Docker foundation, auth module, audit module, and DB abstraction layer |
-| Phase 6+ | Not yet implemented | Deeper analytics, REPL/query language, monetization features |
+| Context intelligence | Working | Commit capture, environment capture, command redaction, IDE/review context hooks, semantic diff facts |
+| Diff and intent analysis | Working | Diff stats, symbol/import signals, intent classification, urgency, risk, scope |
+| Impact analysis | Working | Dependency graph hints, direct/transitive dependents, circular dependency detection |
+| AI explanation | Working | Gemini cloud flow, Ollama local flow, hybrid selection, context optimization, reasoning-chain prompt builder |
+| Summaries and ownership | Working | File evolution summaries, likely owners, team insights, wiki output, ADR output |
+| Collaboration | Working | Git notes, Slack/Discord sharing, GitHub/GitLab review helpers, digests |
+| Engineering health | Working | Quality, security, performance, bug prediction, knowledge risk, refactor priority |
+| Feedback and audit | Working | Feedback submit/log/export, audit log/prune, local auth roles |
+| Storage | Working | JSON backend and live-tested PostgreSQL backend |
+| Docker foundation | Working | Compose stack with GitWhisper dashboard, Ollama sidecar, PostgreSQL |
+| Enterprise scale | Foundation only | Auth/audit/DB modules exist; full SSO, RBAC policy engine, distributed workers are future work |
 
-This README focuses on what is already available in the codebase right now.
+<p align="center">
+  <img src="docs/assets/pipeline-overview.svg" alt="GitWhisper pipeline overview" width="100%">
+</p>
 
-## What Gitwhisper Does Today
-
-- Captures commit context for the current `HEAD` commit into `.git/gitwhisper/`.
-- Parses Git patches into structured diff facts such as file operations, line counts, import changes, symbol changes, and rough complexity deltas.
-- Infers change category, urgency, scope, and risk from commit messages plus diff signals.
-- Builds impact hints such as direct dependents, transitive dependents, circular dependency chains, and an impact score.
-- Explains why a file changed using commit history, captured context, and AI.
-- Summarizes the evolution of a file over time.
-- Shows likely code owners for a file or directory.
-- Annotates commits with compact AI-generated summaries and stores them in Git notes.
-- Shares commit summaries and digests to Slack or Discord.
-- Publishes review-style summaries to GitHub pull requests or GitLab merge requests.
-- Serves a lightweight local team dashboard with ownership, hotspot, trend, and risk views.
-- Exports analytics snapshots as JSON or CSV.
-- Generates markdown wiki pages and ADR-style decision records from captured repository knowledge.
-- Predicts bug-prone files, highlights knowledge-silo risk, and stores explanation feedback.
-- Includes a deployable foundation for auth, audit logging, feedback persistence, and Docker-based local hosting.
+---
 
 ## Quick Start
 
-### 1. Install or build
-
-```bash
-cargo install --path .
-```
-
-Or, if you only want a local build:
+### 1. Build the CLI
 
 ```bash
 cargo build --release
 ```
 
-### 2. Create `.gitwhisper.toml`
-
-Minimal hybrid setup:
-
-```toml
-[ai]
-provider = "hybrid"
-model = "gemini-1.5-flash"
-local_model = "mistral"
-prompt_char_budget = 12000
-history_depth = 10
-
-[capture]
-command_limit = 25
-include_environment = true
-include_analysis = true
-
-[collaboration]
-auto_annotate_commits = true
-enable_git_notes = true
-
-[privacy]
-offline_mode = false
-local_cache_only = true
-
-[database]
-backend = "json"
-postgres_url = ""
-
-[audit]
-enabled = true
-
-[auth]
-enabled = false
-
-[feedback]
-enabled = true
-```
-
-### 3. Configure AI
-
-For Gemini cloud usage:
+Install it into Cargo's binary path:
 
 ```bash
-export GEMINI_API_KEY="your-key"
+cargo install --path .
 ```
 
-PowerShell:
+Or run the built executable directly:
 
 ```powershell
-$env:GEMINI_API_KEY = "your-key"
+.\target\release\gitwhisper.exe --help
 ```
 
-For local AI usage, make sure Ollama is running and the configured model is available:
+For development:
 
 ```bash
-ollama pull mistral
-ollama serve
+cargo run -- --help
 ```
 
-### 4. Install the managed post-commit hook
+### 2. Initialize GitWhisper in a repository
 
 ```bash
 gitwhisper init
-```
-
-This installs a `post-commit` hook that runs `gitwhisper post-commit`, which captures the latest commit context and, if enabled in config, annotates the commit automatically.
-
-### 5. Use the core commands
-
-```bash
-gitwhisper explain src/auth.rs
-gitwhisper summarize src/auth.rs
-gitwhisper owners src/auth.rs
+gitwhisper capture
 gitwhisper annotate
-gitwhisper dashboard --host 127.0.0.1 --port 7878
 ```
 
-## Command Reference
+`gitwhisper init` installs a managed `post-commit` hook. After that, GitWhisper can automatically capture context for new commits and optionally annotate them.
 
-### Core history and explanation commands
-
-| Command | What it does |
-| --- | --- |
-| `gitwhisper init` | Installs the managed `post-commit` hook |
-| `gitwhisper capture` | Captures context for the current `HEAD` commit |
-| `gitwhisper annotate [commit]` | Captures context, generates a compact commit summary, writes Git notes, and may trigger configured delivery |
-| `gitwhisper log` | Lists saved commit context entries |
-| `gitwhisper replay [commit]` | Replays captured developer activity for a commit |
-| `gitwhisper timeline <file>` | Shows the commit timeline for a file |
-| `gitwhisper explain <file>` | Explains why the file changed using history plus captured context |
-| `gitwhisper summarize <file>` | Generates a file-evolution narrative |
-| `gitwhisper quality <path>` | Analyzes quality risk, churn, complexity, and ownership for a file or directory |
-| `gitwhisper security <path>` | Analyzes heuristic security risk for a file or directory |
-| `gitwhisper performance <path>` | Analyzes heuristic performance risk for a file or directory |
-| `gitwhisper bug-predict [path] --limit 10` | Predicts which files are most bug-prone |
-| `gitwhisper knowledge-risk [path] --limit 10` | Reports ownership concentration and knowledge-silo risk |
-| `gitwhisper refactor-priority [path] --limit 10` | Ranks the files most worth refactoring first |
-| `gitwhisper owners <path> --limit 10` | Shows top contributors for a file or directory |
-
-### Collaboration and reporting commands
-
-| Command | What it does |
-| --- | --- |
-| `gitwhisper share slack [commit]` | Sends a commit explanation to Slack |
-| `gitwhisper share discord [commit]` | Sends a commit explanation to Discord |
-| `gitwhisper review github [commit]` | Publishes a review summary to a GitHub PR |
-| `gitwhisper review gitlab [commit]` | Publishes a review summary to a GitLab MR |
-| `gitwhisper digest slack --period daily` | Sends a daily digest to Slack |
-| `gitwhisper digest discord --period weekly` | Sends a weekly digest to Discord |
-| `gitwhisper dashboard --host 127.0.0.1 --port 7878` | Starts the built-in analytics dashboard |
-| `gitwhisper export --format json --output exports/snapshot.json` | Exports analytics snapshot as JSON |
-| `gitwhisper export --format csv --output exports/snapshot.csv` | Exports analytics snapshot as CSV |
-| `gitwhisper wiki --output wiki` | Generates markdown wiki pages and search index |
-| `gitwhisper adr --output docs/adrs` | Generates ADR markdown files |
-| `gitwhisper feedback <commit> --good|--poor [--correct "..."] [--tags "a,b"]` | Stores explanation feedback for a commit |
-| `gitwhisper feedback-log --limit 20` | Shows recent feedback entries |
-| `gitwhisper feedback-export --format json|csv --output ...` | Exports stored feedback entries |
-| `gitwhisper whoami` | Shows the current resolved auth identity and role |
-| `gitwhisper audit-log --limit 20` | Shows recent audit events |
-| `gitwhisper audit-prune [--days 90]` | Prunes audit events older than the retention window |
-
-`gitwhisper post-commit` also exists, but it is an internal command used by the installed hook.
-
-## Implemented Features
-
-### Phase 1: Context Intelligence
-
-#### Semantic diff analysis
-
-Gitwhisper parses raw Git patches into structured change data, including:
-
-- files changed, added, deleted, and renamed
-- lines added, removed, and net line delta
-- per-file diff statistics
-- import and dependency statement changes
-- symbol-level changes such as functions, modules, and types
-- rough complexity delta based on changed code shape
-
-This is implemented in the analysis layer and stored inside each captured commit context.
-
-#### Intent detection
-
-Gitwhisper classifies commit intent without requiring explicit developer input. The current implementation detects:
-
-- category: `bug-fix`, `feature`, `refactor`, `performance`, `documentation`, `dependency-update`, `test`, `chore`
-- urgency: `low`, `normal`, `high`, `critical`
-- risk: `low`, `medium`, `high`, `critical`
-- scope: `single-file`, `cross-file`, `broad`
-- conventional commit fields, including scope and breaking-change markers
-- confidence and signal traces used to make the decision
-
-#### Impact analysis
-
-Impact analysis currently records:
-
-- impact score
-- direct dependents
-- transitive dependents
-- circular dependency chains
-
-This gives the explanation pipeline better hints about blast radius and related files.
-
-#### Expanded context capture
-
-Each stored commit context can include:
-
-- commands run before commit
-- environment metadata such as OS, branch, shell, working directory, and tool versions
-- IDE/editor metadata such as process, version, build system, extensions, and active files
-- review and test metadata such as PR number, reviewers, labels, test status, and coverage when available
-- behavioral context such as recent commit frequency, work-hour patterns, burnout risk, and per-file expertise
-
-IDE and review/test capture are best-effort. Gitwhisper does not store editor file contents from IDE capture.
-
-#### Caching
-
-Explanation caching currently includes:
-
-- in-memory cache for the latest results
-- on-disk cache index under `.git/gitwhisper/cache/`
-- access counts and timestamps
-- related-file prediction helpers used to preselect useful neighboring context
-
-### Phase 2: AI Intelligence
-
-#### Multi-model AI architecture
-
-Gitwhisper supports three AI modes:
-
-- `cloud`: Gemini-based explanation flow
-- `local`: Ollama-based explanation flow
-- `hybrid`: chooses local or cloud depending on prompt size, availability, and configuration
-
-If cloud AI is unavailable and local AI is not configured, Gitwhisper falls back to heuristic summaries instead of failing hard.
-
-#### Context window optimization
-
-The explanation stack now trims and prioritizes prompt context using:
-
-- configurable history depth
-- prompt character budget
-- relevance-based commit selection
-- related-file prediction signals
-
-This keeps prompts focused while still preserving useful historical context.
-
-#### Reasoning-chain prompt construction
-
-Before sending an AI request, Gitwhisper assembles a structured prompt that includes:
-
-- what changed
-- detected intent
-- impact hints
-- behavioral and review context
-- related history
-
-This produces better file explanations and better commit annotations than a plain "explain this diff" prompt.
-
-#### File summaries and ownership insights
-
-Phase 2 also added:
-
-- `gitwhisper summarize <file>` for file-evolution narratives
-- `gitwhisper owners <path>` for top-contributor and knowledge-silo visibility
-
-### Phase 3: Collaboration and Team Knowledge
-
-#### Commit annotations and Git notes
-
-`gitwhisper annotate` prepares a commit report, generates a compact summary, writes a Git note, and can optionally fan that report out to external tools. The post-commit hook can run this automatically after each commit.
-
-Git notes are written to the configured ref:
-
-```text
-refs/notes/gitwhisper
-```
-
-#### Team sharing
-
-Gitwhisper can send:
-
-- single commit summaries to Slack
-- single commit summaries to Discord
-- daily digests
-- weekly digests
-
-Slack and Discord delivery both require valid webhook or bot configuration.
-
-#### PR and MR review posting
-
-Gitwhisper can publish commit-aware review summaries to:
-
-- GitHub pull requests
-- GitLab merge requests
-
-The current implementation resolves the remote from `origin` and uses the configured provider credentials.
-
-#### Local analytics dashboard
-
-The dashboard is a lightweight built-in HTTP server. It serves:
-
-- `/` for the HTML dashboard
-- `/snapshot.json` for analytics JSON
-- `/snapshot.csv` for analytics CSV
-- `/healthz` for a simple health check
-
-The dashboard currently shows:
-
-- overview metrics
-- contributor activity
-- hot files and ownership concentration
-- weekly activity trend
-- simple risk signals
-- recent commits
-
-#### Metrics export
-
-Analytics can be exported as:
-
-- JSON for tooling or downstream analysis
-- CSV for spreadsheets and lightweight reporting
-
-#### Wiki and ADR generation
-
-Gitwhisper can generate project documentation directly from captured repository history:
-
-- wiki output includes `index.md`, per-file pages, per-person pages, and `search-index.json`
-- ADR output includes a `README.md` index and numbered ADR markdown files
-
-### Phase 4: First Quality Analyzer
-
-The first Phase 4 slice is now available through:
+### 3. Ask your first questions
 
 ```bash
-gitwhisper quality src/auth.rs
-gitwhisper quality src/
-```
-
-This analyzer combines current file contents with Git history and captured commit context to report:
-
-- approximate complexity pressure
-- repeated line-level logic patterns
-- churn hotspots from recent captured diffs
-- repeated bug-fix history
-- ownership concentration and knowledge-silo risk
-- practical refactoring suggestions
-
-Phase 4 now also includes:
-
-```bash
-gitwhisper security src/auth.rs
-gitwhisper performance src/api
+gitwhisper explain src/main.rs
+gitwhisper summarize src/main.rs
+gitwhisper owners src --limit 10
 gitwhisper refactor-priority src --limit 10
 ```
 
-These reports add:
-
-- security heuristics for secret exposure, injection-prone patterns, process execution, weak crypto markers, and auth-sensitive churn
-- performance heuristics for nested iteration pressure, allocation churn, I/O-heavy control flow, and change hotspots
-- a combined refactor-priority ranking that merges quality, security, and performance risk into one ordered backlog
-- bug prediction based on churn, bug-fix history, complexity, and file maturity
-- knowledge-risk scoring based on ownership concentration and contributor spread
-- feedback capture for explanation quality, backed by the new persistence layer
-
-### Phase 5 foundation
-
-The enterprise foundation is now started with:
+### 4. Start the dashboard
 
 ```bash
-gitwhisper whoami
-gitwhisper feedback HEAD --good --tags "accurate,helpful"
-gitwhisper feedback-log --limit 10
-gitwhisper audit-log --limit 10
-docker compose up --build
+gitwhisper dashboard --host 127.0.0.1 --port 7878
 ```
 
-This foundation currently includes:
-
-- a DB abstraction layer with a working JSON backend and a working Postgres backend path
-- a local auth model with role checks for report viewing, feedback, and audit access
-- audit event persistence for feedback activity
-- Docker and Compose files for local deployment with optional Ollama sidecar support
-
-The DB layer currently supports:
-
-- `json` as the default local backend
-- `postgres` when `database.postgres_url` is configured and reachable
-
-## Captured Commit Context Format
-
-Commit context is stored under:
+Open:
 
 ```text
-.git/gitwhisper/<short-commit>.json
+http://127.0.0.1:7878
 ```
 
-Current schema example:
+---
 
-```json
-{
-  "schema_version": 3,
-  "commit": "f6e3058",
-  "timestamp": "2026-03-07T12:14:26Z",
-  "commands": ["cargo test", "git add src/auth.rs"],
-  "environment": {
-    "os": "windows",
-    "branch": "main",
-    "shell": "powershell.exe",
-    "working_directory": "C:/repo",
-    "tools": {
-      "node": "v22.14.0",
-      "python": "3.12.2",
-      "rust": "1.77.2"
-    }
-  },
-  "ide": {
-    "name": "VSCode",
-    "process": "Code.exe",
-    "version": "1.88.0",
-    "build_system": "cargo",
-    "extensions": ["rust-analyzer"],
-    "active_files": ["src/auth.rs"]
-  },
-  "review": {
-    "ci_provider": "github-actions",
-    "pr_number": "42",
-    "reviewers": ["alice", "bob"],
-    "labels": ["security"],
-    "milestone": "v0.3",
-    "test_status": "passed",
-    "tests_run": 124,
-    "tests_failed": 0,
-    "coverage_percent": 81,
-    "source": "github"
-  },
-  "behavior": {
-    "author": "alice@example.com",
-    "commits_last_7d": 12,
-    "commits_last_30d": 41,
-    "late_night_ratio": 8,
-    "typical_work_hours": "09:00-18:00",
-    "burnout_risk": "normal",
-    "expertise": [
-      { "path": "src/auth.rs", "commit_count": 9 }
-    ]
-  },
-  "files": ["src/auth.rs"],
-  "analysis": {
-    "intent": {
-      "category": "bug-fix",
-      "urgency": "normal",
-      "risk": "medium",
-      "scope": "single-file",
-      "conventional_type": "fix",
-      "conventional_scope": "auth",
-      "breaking_change": false,
-      "signals": ["type `fix`", "conventional commit header"],
-      "confidence": 94
-    },
-    "diff": {
-      "files_changed": 1,
-      "files_added": 0,
-      "files_deleted": 0,
-      "files_renamed": 0,
-      "lines_added": 18,
-      "lines_removed": 4,
-      "net_lines": 14,
-      "complexity_delta": 2
-    },
-    "impact": {
-      "impact_score": 42,
-      "direct_dependents": ["src/session.rs"],
-      "transitive_dependents": ["src/api/auth_handler.rs"],
-      "circular_dependencies": []
-    }
-  }
-}
+## Pipelines And Flow
+
+This section explains what happens inside GitWhisper when you run the main commands.
+
+### System Overview
+
+```mermaid
+flowchart LR
+    dev["Developer"] --> cli["gitwhisper CLI"]
+    cli --> git["Git repository"]
+    cli --> capture["Context collectors"]
+    cli --> analysis["Analysis engine"]
+    analysis --> intent["Intent detection"]
+    analysis --> impact["Impact analysis"]
+    analysis --> health["Quality, security, performance, bug, knowledge risk"]
+    capture --> storage["Persistence layer"]
+    git --> analysis
+    analysis --> optimizer["Context optimizer"]
+    optimizer --> ai["AI layer: Gemini, Ollama, hybrid"]
+    ai --> explain["Explanations and summaries"]
+    health --> reports["Risk reports"]
+    explain --> outputs["CLI, Git notes, PR comments, Slack, Discord, wiki, ADRs"]
+    reports --> outputs
+    storage --> outputs
 ```
 
-## Configuration Reference
+GitWhisper starts with facts from Git and local context. The analyzers produce structured signals, the optimizer trims those signals into useful prompt context, and the AI layer turns them into readable explanations. Reports can stay local, go into Git notes, or publish to team tools.
 
-Gitwhisper loads `.gitwhisper.toml` from the repository root and also reads `.env` so `GEMINI_API_KEY` can be supplied without passing `--api-key` every time.
+### Commit Capture Pipeline
 
-Full example:
+```mermaid
+sequenceDiagram
+    participant Dev as Developer
+    participant Git as Git
+    participant Hook as post-commit hook
+    participant CLI as gitwhisper
+    participant Collectors as Collectors
+    participant Store as .git/gitwhisper
+    Dev->>Git: git commit
+    Git->>Hook: run post-commit
+    Hook->>CLI: gitwhisper capture / annotate
+    CLI->>Git: read HEAD, diff, author, branch
+    CLI->>Collectors: collect commands, env, IDE, review context
+    Collectors-->>CLI: sanitized context
+    CLI->>Store: write commit context JSON
+    CLI->>Git: optional Git note with explanation
+```
+
+The capture step is designed to be useful but conservative. It stores metadata and context, not full IDE file contents. Command capture redacts common secret patterns before data is persisted.
+
+### Semantic Analysis Pipeline
+
+```mermaid
+flowchart TD
+    patch["Raw git patch"] --> parser["Diff parser"]
+    parser --> stats["File stats: added, removed, renamed, line delta"]
+    parser --> symbols["Symbol and import signals"]
+    parser --> complexity["Rough complexity delta"]
+    stats --> intent["Intent detection"]
+    symbols --> intent
+    complexity --> intent
+    intent --> impact["Impact analysis"]
+    impact --> featureVector["ML-ready feature vector"]
+    featureVector --> reports["Explain, quality, risk, and dashboard reports"]
+```
+
+The analyzer looks beyond filenames. It extracts change shape, rough complexity movement, import/dependency changes, and commit-message intent signals. These facts feed both AI explanations and non-AI reports.
+
+### Explain Command Pipeline
+
+```mermaid
+flowchart TD
+    command["gitwhisper explain path/to/file"] --> history["Load file history"]
+    history --> contexts["Load captured commit contexts"]
+    contexts --> relevance["Rank relevant commits"]
+    relevance --> budget["Apply prompt budget"]
+    budget --> reasoning["Build reasoning-chain prompt"]
+    reasoning --> selector["Model selector"]
+    selector --> local["Ollama local model"]
+    selector --> cloud["Gemini cloud model"]
+    selector --> fallback["Heuristic fallback"]
+    local --> answer["Human explanation"]
+    cloud --> answer
+    fallback --> answer
+    answer --> cache["Cache explanation"]
+    answer --> terminal["Print result"]
+```
+
+The model selector chooses local, cloud, or fallback behavior based on configuration and prompt size. This keeps the tool fast for small local explanations while still allowing deeper cloud analysis when requested.
+
+### Engineering Health Pipeline
+
+<p align="center">
+  <img src="docs/assets/risk-dashboard.svg" alt="GitWhisper engineering health dashboard illustration" width="100%">
+</p>
+
+```mermaid
+flowchart LR
+    repo["Repository files"] --> quality["Quality analyzer"]
+    repo --> security["Security analyzer"]
+    repo --> performance["Performance analyzer"]
+    history["Git history"] --> bug["Bug predictor"]
+    history --> knowledge["Knowledge risk"]
+    quality --> priority["Refactor priority"]
+    security --> priority
+    performance --> priority
+    bug --> priority
+    knowledge --> priority
+    priority --> cli["Ranked CLI report"]
+    priority --> dashboard["Dashboard and exports"]
+```
+
+The health pipeline is heuristic today. It ranks files using churn, complexity pressure, repeated patterns, security markers, performance markers, bug-fix history, ownership concentration, and contributor spread. The goal is not to replace review; it is to point reviewers and maintainers at the places most worth inspecting.
+
+### Collaboration Pipeline
+
+```mermaid
+flowchart TD
+    annotate["gitwhisper annotate"] --> summary["Commit explanation"]
+    summary --> notes["Git notes: refs/notes/gitwhisper"]
+    summary --> webhook["Webhook payload"]
+    webhook --> slack["Slack"]
+    webhook --> discord["Discord"]
+    summary --> pr["GitHub PR / GitLab MR"]
+    pr --> reviewers["Reviewer context: intent, impact, risk"]
+    notes --> future["Future explain and summarize commands"]
+```
+
+Collaboration output is opt-in. Git notes are local/repo-native; Slack, Discord, GitHub, and GitLab require explicit integration configuration.
+
+### Storage Pipeline
+
+```mermaid
+flowchart LR
+    cli["gitwhisper CLI"] --> dbLayer["DB abstraction layer"]
+    dbLayer --> json["JSON backend"]
+    dbLayer --> postgres["PostgreSQL backend"]
+    json --> gitDir[".git/gitwhisper/logs and feedback"]
+    postgres --> tables["feedback and audit_events tables"]
+    tables --> exports["feedback-export, audit-log, dashboard"]
+    gitDir --> exports
+```
+
+The JSON backend is the default local path. PostgreSQL is available for team or Docker-based use and has been live-tested with feedback and audit workflows.
+
+---
+
+## Commands
+
+### Core History And Explanation
+
+| Command | Purpose |
+| --- | --- |
+| `gitwhisper init` | Install the managed post-commit hook |
+| `gitwhisper capture` | Capture context for the current `HEAD` commit |
+| `gitwhisper annotate [commit]` | Generate an explanation and store it in Git notes |
+| `gitwhisper log` | Show captured context entries |
+| `gitwhisper replay [commit]` | Replay captured activity for a commit |
+| `gitwhisper timeline <file>` | Show a file's commit timeline |
+| `gitwhisper explain <file>` | Explain why a file changed |
+| `gitwhisper summarize <file>` | Tell the file's evolution story |
+| `gitwhisper owners <path> --limit 10` | Show likely code owners |
+
+### Risk And Health
+
+| Command | Purpose |
+| --- | --- |
+| `gitwhisper quality <path>` | Analyze complexity, duplication, churn, and maintainability risk |
+| `gitwhisper security <path>` | Flag security-sensitive patterns and risky changes |
+| `gitwhisper performance <path>` | Flag performance-sensitive patterns and hotspots |
+| `gitwhisper bug-predict [path] --limit 10` | Rank likely bug-prone files |
+| `gitwhisper knowledge-risk [path] --limit 10` | Report ownership concentration and knowledge silos |
+| `gitwhisper refactor-priority [path] --limit 10` | Rank the files most worth refactoring |
+
+### Collaboration And Publishing
+
+| Command | Purpose |
+| --- | --- |
+| `gitwhisper share slack [commit]` | Send a commit explanation to Slack |
+| `gitwhisper share discord [commit]` | Send a commit explanation to Discord |
+| `gitwhisper review github [commit]` | Publish a GitHub PR review helper summary |
+| `gitwhisper review gitlab [commit]` | Publish a GitLab MR review helper summary |
+| `gitwhisper digest slack --period daily` | Send a Slack digest |
+| `gitwhisper digest discord --period weekly` | Send a Discord digest |
+
+### Platform, Docs, Feedback, Audit
+
+| Command | Purpose |
+| --- | --- |
+| `gitwhisper dashboard --host 127.0.0.1 --port 7878` | Start the analytics dashboard |
+| `gitwhisper export --format json --output exports/snapshot.json` | Export analytics JSON |
+| `gitwhisper export --format csv --output exports/snapshot.csv` | Export analytics CSV |
+| `gitwhisper wiki --output wiki` | Generate markdown wiki pages |
+| `gitwhisper adr --output docs/adrs` | Generate ADR files |
+| `gitwhisper feedback <commit> --good` | Store positive explanation feedback |
+| `gitwhisper feedback <commit> --poor --correct "..."` | Store corrected feedback |
+| `gitwhisper feedback-log --limit 20` | Show recent feedback |
+| `gitwhisper feedback-export --format json --output exports/feedback.json` | Export feedback |
+| `gitwhisper whoami` | Show resolved local auth identity |
+| `gitwhisper audit-log --limit 20` | Show audit events |
+| `gitwhisper audit-prune --days 90` | Prune old audit events |
+
+---
+
+## Configuration
+
+GitWhisper reads `.gitwhisper.toml` from the repository root. It also reads `.env` through `dotenvy`, so environment variables such as `GEMINI_API_KEY` can live outside your shell profile.
 
 ```toml
 [ai]
-provider = "hybrid"         # cloud | local | hybrid
+provider = "hybrid" # cloud | local | hybrid
 model = "gemini-1.5-flash"
 local_model = "mistral"
 prompt_char_budget = 12000
-hybrid_max_prompt_chars = 8000
-ollama_url = "http://localhost:11434"
 history_depth = 10
 request_timeout_secs = 45
+hybrid_max_prompt_chars = 8000
+ollama_url = "http://localhost:11434"
 
 [capture]
 command_limit = 25
@@ -553,10 +381,10 @@ update_mr_description = false
 [privacy]
 offline_mode = false
 local_cache_only = true
-exclude_files = ["*.key", "*.secret"]
+exclude_files = []
 
 [database]
-backend = "json"            # json | postgres
+backend = "json" # json | postgres
 path = ".git/gitwhisper/gitwhisper.db"
 postgres_url = ""
 
@@ -566,8 +394,8 @@ retain_days = 90
 
 [auth]
 enabled = false
-mode = "disabled"           # disabled | local
-default_role = "admin"      # viewer | contributor | admin
+mode = "disabled" # disabled | local
+default_role = "admin"
 
 [[auth.users]]
 username = "docker-admin"
@@ -578,147 +406,330 @@ enabled = true
 allow_anonymous = false
 ```
 
-## Storage and Outputs
+### Environment Overrides
 
-Gitwhisper currently writes data to these places:
+| Variable | Purpose |
+| --- | --- |
+| `GEMINI_API_KEY` | Cloud AI key used by Gemini flows |
+| `GITWHISPER_USER` | Overrides detected username for auth/audit |
+| `GITWHISPER_DATABASE_BACKEND` | Overrides database backend, for example `json` or `postgres` |
+| `GITWHISPER_DB_BACKEND` | Short alias for database backend |
+| `GITWHISPER_POSTGRES_URL` | PostgreSQL connection string |
+| `GITWHISPER_DATABASE_URL` | Alias for PostgreSQL connection string |
+| `GITWHISPER_DATABASE_PATH` | Overrides JSON database path |
+| `GITWHISPER_DB_PATH` | Short alias for JSON database path |
 
-- `.git/gitwhisper/<short-commit>.json` for captured commit contexts
-- `.git/gitwhisper/cache/cache-index.json` for explanation cache metadata
-- `.git/gitwhisper/logs/ai.log` for AI request and fallback logging
-- `.git/gitwhisper/logs/collaboration.log` for annotation and delivery events
-- `.git/gitwhisper/logs/audit.json` for audit events when using the JSON backend
-- `.git/gitwhisper/feedback/feedback.json` for explanation feedback when using the JSON backend
-- PostgreSQL tables `audit_events` and `feedback` when using the Postgres backend
-- Git notes under `refs/notes/gitwhisper` by default
-- user-selected output directories for exports, wiki pages, and ADRs
+---
 
-## Example Workflows
+## Docker And Postgres
 
-### Explain why a file changed
-
-```bash
-gitwhisper explain src/auth.rs
-```
-
-### Tell the story of a file
-
-```bash
-gitwhisper summarize src/auth.rs
-gitwhisper timeline src/auth.rs
-```
-
-### Find who knows a file best
-
-```bash
-gitwhisper owners src/auth.rs --limit 5
-```
-
-### Check quality risk before refactoring
-
-```bash
-gitwhisper quality src/auth.rs
-gitwhisper quality src/api
-```
-
-### Check security and performance hotspots
-
-```bash
-gitwhisper security src/auth.rs
-gitwhisper performance src/api
-gitwhisper refactor-priority src --limit 10
-```
-
-### Predict bugs and knowledge silos
-
-```bash
-gitwhisper bug-predict src --limit 10
-gitwhisper knowledge-risk src --limit 10
-```
-
-### Record explanation feedback
-
-```bash
-gitwhisper feedback HEAD --good --tags "accurate,helpful"
-gitwhisper feedback HEAD --poor --correct "This was a refactor, not a bug fix"
-gitwhisper feedback-log --limit 10
-gitwhisper feedback-export --format csv --output exports/feedback.csv
-gitwhisper audit-log --limit 10
-gitwhisper audit-prune --days 30
-```
-
-### Run with Docker
+GitWhisper includes a Compose stack for a local team-style deployment.
 
 ```bash
 docker compose up --build
 ```
 
-### Use Postgres backend
+Default services:
+
+| Service | URL |
+| --- | --- |
+| GitWhisper dashboard | `http://localhost:7878` |
+| Ollama | `http://localhost:11434` |
+| PostgreSQL | `localhost:55432` |
+
+Compose passes these defaults into the app container:
+
+```text
+GITWHISPER_DATABASE_BACKEND=postgres
+GITWHISPER_POSTGRES_URL=postgres://postgres:postgres@postgres:5432/gitwhisper
+```
+
+For local CLI testing against Compose PostgreSQL, use:
 
 ```toml
 [database]
 backend = "postgres"
-postgres_url = "postgres://postgres:postgres@localhost:5432/gitwhisper"
+postgres_url = "postgres://postgres:postgres@localhost:55432/gitwhisper"
 ```
 
-### Annotate the latest commit and store Git notes
+The PostgreSQL backend currently creates and uses:
+
+| Table | Purpose |
+| --- | --- |
+| `feedback` | Stores explanation ratings, corrections, tags, actor, commit, timestamp |
+| `audit_events` | Stores actor, action, target, outcome, timestamp, metadata |
+
+---
+
+## Architecture
+
+```mermaid
+flowchart TB
+    main["main.rs command dispatch"] --> cli["cli.rs Clap definitions"]
+    main --> viewer["viewer modules"]
+    viewer --> history["history and git helpers"]
+    viewer --> analysis["analysis modules"]
+    viewer --> ai["ai modules"]
+    main --> capture["capture.rs"]
+    capture --> collectors["collectors"]
+    capture --> storage["storage"]
+    main --> collaboration["collaboration.rs"]
+    collaboration --> integrations["integrations"]
+    main --> dashboard["dashboard.rs"]
+    dashboard --> metrics["metrics"]
+    main --> generators["wiki and ADR generators"]
+    main --> feedback["feedback.rs"]
+    feedback --> auth["auth"]
+    feedback --> audit["audit"]
+    feedback --> db["db abstraction"]
+    audit --> db
+    db --> json["JSON files"]
+    db --> pg["PostgreSQL"]
+```
+
+Top-level module map:
+
+| Module | Responsibility |
+| --- | --- |
+| `src/analysis/` | Diff parsing, intent detection, impact analysis, behavior, quality/security/performance/bug/knowledge/refactor analyzers |
+| `src/ai/` | Cloud model, local model, model selector, context optimizer, reasoning-chain prompt generation |
+| `src/collectors/` | Command, environment, IDE, and review-context collection |
+| `src/storage/` | Context persistence, caching, predictive cache helpers |
+| `src/integrations/` | Slack, Discord, GitHub, GitLab integrations |
+| `src/metrics/` | Dashboard/export snapshots |
+| `src/generators/` | Wiki and ADR generation |
+| `src/auth/` | Local identity and permission checks |
+| `src/audit/` | Audit event recording and pruning |
+| `src/db/` | JSON/PostgreSQL persistence abstraction |
+| `src/viewer/` | User-facing command implementations |
+
+---
+
+## Data And Privacy Model
+
+```mermaid
+flowchart LR
+    local["Local repo"] --> gitDir[".git/gitwhisper"]
+    local --> json["JSON backend"]
+    local --> pg["Optional Postgres"]
+    gitDir --> explain["Explain and summarize"]
+    json --> feedback["Feedback and audit"]
+    pg --> feedback
+    explain --> cloud["Cloud AI only if configured"]
+    explain --> ollama["Local Ollama if configured"]
+```
+
+Privacy defaults are conservative:
+
+| Control | Behavior |
+| --- | --- |
+| `privacy.offline_mode = true` | Prevents cloud AI selection |
+| `privacy.local_cache_only = true` | Keeps explanation cache local |
+| `privacy.exclude_files` | Excludes matching file patterns from capture/analysis flows |
+| Integration `enabled = false` | Slack, Discord, GitHub, GitLab publishing is off until configured |
+
+GitWhisper can still call cloud AI if you configure cloud mode and provide credentials. For private repositories, review `.gitwhisper.toml` before enabling external integrations.
+
+---
+
+## Storage Layout
+
+Local JSON-backed data is written under the repository `.git` directory:
+
+```text
+.git/gitwhisper/
+  cache/
+  feedback/
+  logs/
+  <short-commit>.json
+```
+
+Common outputs:
+
+| Path | Purpose |
+| --- | --- |
+| `.git/gitwhisper/<short-commit>.json` | Captured commit context |
+| `.git/gitwhisper/cache/cache-index.json` | Explanation cache metadata |
+| `.git/gitwhisper/logs/audit.json` | JSON audit backend |
+| `.git/gitwhisper/feedback/feedback.json` | JSON feedback backend |
+| `refs/notes/gitwhisper` | Git notes for commit explanations |
+| `exports/*.json` and `exports/*.csv` | Analytics and feedback exports |
+| `wiki/` | Generated project wiki |
+| `docs/adrs/` | Generated architecture decision records |
+
+---
+
+## Example Workflows
+
+### Explain a confusing file
+
+```bash
+gitwhisper explain src/auth.rs
+gitwhisper timeline src/auth.rs
+gitwhisper summarize src/auth.rs
+```
+
+Use this when you inherited a file and want a narrative instead of reading every commit manually.
+
+### Prepare for review
 
 ```bash
 gitwhisper annotate
-git notes --ref refs/notes/gitwhisper show HEAD
+gitwhisper security src
+gitwhisper performance src
+gitwhisper refactor-priority src --limit 10
 ```
 
-### Share updates with the team
+Use this before opening a PR or when reviewing a risky change.
+
+### Find ownership risk
 
 ```bash
-gitwhisper share slack
-gitwhisper digest discord --period weekly
+gitwhisper owners src/api --limit 10
+gitwhisper knowledge-risk src --limit 10
+gitwhisper bug-predict src --limit 10
 ```
 
-### Generate documentation from repository history
+Use this to identify files that depend too heavily on one person or have a risky change history.
+
+### Build a lightweight knowledge base
 
 ```bash
 gitwhisper wiki --output wiki
 gitwhisper adr --output docs/adrs
 ```
 
-## Project Structure
+Use this when you want repository knowledge to become searchable documentation.
 
-```text
-src/
-  ai/             cloud/local/hybrid AI backends and prompt optimization
-  analysis/       diff parsing, intent detection, impact analysis, behavior patterns
-  audit/          audit event recording
-  auth/           local auth and permission checks
-  collectors/     command, environment, IDE, and review-context collection
-  db/             persistence abstraction for feedback and audit data
-  generators/     wiki and ADR generation
-  integrations/   Slack, Discord, GitHub, and GitLab delivery
-  metrics/        analytics snapshot and export
-  storage/        context persistence and caching
-  viewer/         explain, summarize, replay, timeline, owners, log views
-  capture.rs      commit capture pipeline
-  collaboration.rs commit annotation and delivery flow
-  dashboard.rs    built-in analytics dashboard server
-  history.rs      commit history helpers
-  hooks.rs        managed post-commit hook installer
-  config.rs       .gitwhisper.toml parsing
-  feedback.rs     explanation feedback workflow
-  cli.rs          Clap command definitions
-  main.rs         command dispatch
+### Capture feedback and audit it
+
+```bash
+gitwhisper feedback HEAD --good --tags accurate,helpful
+gitwhisper feedback HEAD --poor --correct "This was actually a refactor."
+gitwhisper feedback-log --limit 20
+gitwhisper feedback-export --format csv --output exports/feedback.csv
+gitwhisper audit-log --limit 20
+gitwhisper audit-prune --days 90
 ```
 
-## Notes and Limitations
+Use this to build a feedback dataset for explanation quality and keep an auditable trail of user-facing actions.
 
-- Phase 4 is still heuristic-driven rather than ML-backed. The bug, security, performance, and knowledge reports are useful now, but they are still rule-based.
-- Phase 5 currently provides a local foundation, not full enterprise SSO or distributed infrastructure. The DB abstraction is active, the JSON backend works now, and Postgres support is available when configured.
-- IDE capture and review metadata are best-effort and depend on local processes, repository remotes, and available provider metadata.
-- Slack, Discord, GitHub, and GitLab integrations require valid configuration and reachable network access.
-- The dashboard is intentionally lightweight and built into the CLI rather than being a separate full frontend application.
+---
+
+## Dashboard Endpoints
+
+When the dashboard is running:
+
+| Endpoint | Purpose |
+| --- | --- |
+| `/` | Interactive dashboard |
+| `/snapshot.json` | Machine-readable analytics snapshot |
+| `/snapshot.csv` | CSV analytics snapshot |
+| `/healthz` | Health check |
+
+---
+
+## Testing
+
+```bash
+cargo test
+cargo fmt
+cargo clippy -- -D warnings
+```
+
+Current validation from the latest implementation pass:
+
+| Check | Result |
+| --- | --- |
+| Unit tests | `26/26` passing |
+| PostgreSQL backend | Live-tested with Compose |
+| Feedback export | JSON and CSV tested |
+| Audit prune/log | Tested on JSON and PostgreSQL paths |
+
+---
+
+## Roadmap
+
+GitWhisper is intentionally growing from local-first CLI toward team and enterprise intelligence.
+
+```mermaid
+timeline
+    title GitWhisper roadmap
+    Phase 1 : Context intelligence
+            : Diff parser
+            : Intent and impact analysis
+    Phase 2 : AI intelligence
+            : Gemini, Ollama, hybrid selector
+            : Context optimizer and reasoning-chain prompts
+    Phase 3 : Collaboration
+            : Git notes, Slack, Discord
+            : GitHub and GitLab review helpers
+    Phase 4 : Advanced analyzers
+            : Quality, security, performance
+            : Bug prediction, knowledge risk, feedback
+    Phase 5 : Enterprise foundation
+            : Docker, auth, audit, JSON/Postgres DB layer
+    Phase 6+ : Future scale
+            : richer analytics, query language, workers, SSO
+```
+
+Next high-value upgrades:
+
+1. Add CI workflows for build, test, fmt, and clippy.
+2. Add a `LICENSE` file before public release.
+3. Add real dashboard screenshots or GIFs after the UI is stabilized.
+4. Add integration tests for PostgreSQL and Docker.
+5. Expand tree-sitter language-aware parsing for more precise function-level analysis.
+
+---
 
 ## Contributing
 
-Issues, pull requests, and feature suggestions are welcome. If you are contributing, keeping the README aligned with actual implementation status is especially helpful because the roadmap is larger than the currently shipped surface area.
+Good first contribution areas:
+
+| Area | Why it helps |
+| --- | --- |
+| Analyzer tests | Makes risk reports more trustworthy |
+| Docs examples | Helps users understand workflows faster |
+| Integration tests | Protects Slack/GitHub/GitLab/Postgres behavior |
+| Dashboard polish | Makes team insights easier to scan |
+| Language parsers | Improves semantic diff quality |
+
+Recommended flow:
+
+```bash
+git checkout -b feat/your-change
+cargo fmt
+cargo test
+cargo clippy -- -D warnings
+```
+
+---
+
+## FAQ
+
+### Is the project GitWhisper or CommitLens?
+
+The Rust package and CLI are `gitwhisper`. This README uses GitWhisper as the product name.
+
+### Does GitWhisper require cloud AI?
+
+No. You can use local Ollama mode or let non-AI analyzers provide reports. Cloud AI is only used when configured.
+
+### Does it send code to Slack, GitHub, or other services by default?
+
+No. Integrations are disabled by default and must be explicitly configured.
+
+### Is PostgreSQL required?
+
+No. JSON storage is the default. PostgreSQL is available for team or Docker-backed use.
+
+### Is the enterprise roadmap finished?
+
+No. The foundation exists: Docker, auth module, audit module, feedback, and DB abstraction. Full SSO, advanced RBAC, distributed workers, and managed cloud deployment are future work.
+
+---
 
 ## License
 
-MIT
+A license file is not currently present in the repository root. Add one before public release so contributors and users know how they can use the project.

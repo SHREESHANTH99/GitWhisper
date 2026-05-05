@@ -1,0 +1,54 @@
+<svg width="1200" height="360" viewBox="0 0 1200 360" fill="none" xmlns="http://www.w3.org/2000/svg" role="img" aria-labelledby="title desc">
+  <title id="title">GitWhisper project banner</title>
+  <desc id="desc">A visual banner showing GitWhisper turning commits into context, explanations, team insight, and enterprise storage.</desc>
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="1200" y2="360" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#071414"/>
+      <stop offset="0.45" stop-color="#102822"/>
+      <stop offset="1" stop-color="#1f2d24"/>
+    </linearGradient>
+    <linearGradient id="accent" x1="126" y1="74" x2="1070" y2="306" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#72e0b8"/>
+      <stop offset="0.5" stop-color="#ffd166"/>
+      <stop offset="1" stop-color="#f97316"/>
+    </linearGradient>
+    <filter id="softShadow" x="-20%" y="-40%" width="140%" height="180%" color-interpolation-filters="sRGB">
+      <feDropShadow dx="0" dy="18" stdDeviation="18" flood-color="#000000" flood-opacity="0.32"/>
+    </filter>
+    <pattern id="grid" width="36" height="36" patternUnits="userSpaceOnUse">
+      <path d="M 36 0 L 0 0 0 36" stroke="#ffffff" stroke-opacity="0.055" stroke-width="1"/>
+    </pattern>
+  </defs>
+  <rect width="1200" height="360" rx="28" fill="url(#bg)"/>
+  <rect width="1200" height="360" rx="28" fill="url(#grid)"/>
+  <path d="M120 250C235 150 334 252 453 162C585 62 685 157 806 126C923 96 1005 128 1080 74" stroke="url(#accent)" stroke-width="4" stroke-linecap="round"/>
+  <g filter="url(#softShadow)">
+    <rect x="78" y="76" width="478" height="210" rx="22" fill="#0f1b1b" stroke="#24443e"/>
+    <text x="112" y="136" fill="#f5fff8" font-family="Segoe UI, Arial, sans-serif" font-size="52" font-weight="800">GitWhisper</text>
+    <text x="115" y="174" fill="#b8d9cd" font-family="Segoe UI, Arial, sans-serif" font-size="20">Commit intelligence for teams who need the why,</text>
+    <text x="115" y="202" fill="#b8d9cd" font-family="Segoe UI, Arial, sans-serif" font-size="20">the risk, and the next best action.</text>
+    <rect x="116" y="232" width="128" height="34" rx="17" fill="#72e0b8" fill-opacity="0.16" stroke="#72e0b8"/>
+    <text x="136" y="255" fill="#ccffef" font-family="Segoe UI, Arial, sans-serif" font-size="15" font-weight="700">Rust CLI</text>
+    <rect x="260" y="232" width="142" height="34" rx="17" fill="#ffd166" fill-opacity="0.14" stroke="#ffd166"/>
+    <text x="281" y="255" fill="#fff0b8" font-family="Segoe UI, Arial, sans-serif" font-size="15" font-weight="700">Local-first AI</text>
+    <rect x="418" y="232" width="94" height="34" rx="17" fill="#f97316" fill-opacity="0.15" stroke="#f97316"/>
+    <text x="440" y="255" fill="#ffd8bd" font-family="Segoe UI, Arial, sans-serif" font-size="15" font-weight="700">Team</text>
+  </g>
+  <g filter="url(#softShadow)">
+    <rect x="650" y="70" width="160" height="70" rx="18" fill="#132424" stroke="#30564f"/>
+    <text x="681" y="99" fill="#72e0b8" font-family="Segoe UI, Arial, sans-serif" font-size="16" font-weight="800">Capture</text>
+    <text x="679" y="122" fill="#bfd9cf" font-family="Segoe UI, Arial, sans-serif" font-size="12">Git + IDE + CI</text>
+    <rect x="842" y="70" width="160" height="70" rx="18" fill="#132424" stroke="#30564f"/>
+    <text x="875" y="99" fill="#ffd166" font-family="Segoe UI, Arial, sans-serif" font-size="16" font-weight="800">Analyze</text>
+    <text x="872" y="122" fill="#bfd9cf" font-family="Segoe UI, Arial, sans-serif" font-size="12">Intent + impact</text>
+    <rect x="746" y="176" width="160" height="70" rx="18" fill="#132424" stroke="#30564f"/>
+    <text x="782" y="205" fill="#fef3c7" font-family="Segoe UI, Arial, sans-serif" font-size="16" font-weight="800">Explain</text>
+    <text x="775" y="228" fill="#bfd9cf" font-family="Segoe UI, Arial, sans-serif" font-size="12">Gemini + Ollama</text>
+    <rect x="938" y="176" width="160" height="70" rx="18" fill="#132424" stroke="#30564f"/>
+    <text x="975" y="205" fill="#fb923c" font-family="Segoe UI, Arial, sans-serif" font-size="16" font-weight="800">Share</text>
+    <text x="968" y="228" fill="#bfd9cf" font-family="Segoe UI, Arial, sans-serif" font-size="12">PRs + Slack</text>
+    <path d="M810 105H842" stroke="#72e0b8" stroke-width="2" stroke-linecap="round"/>
+    <path d="M922 140L850 176" stroke="#ffd166" stroke-width="2" stroke-linecap="round"/>
+    <path d="M906 211H938" stroke="#fb923c" stroke-width="2" stroke-linecap="round"/>
+  </g>
+</svg>

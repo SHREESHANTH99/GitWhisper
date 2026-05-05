@@ -29,7 +29,11 @@ fn generate_adrs_inner(output_dir: &str) -> AppResult<PathBuf> {
 
     for (idx, context) in records.iter().enumerate() {
         let adr_number = idx + 1;
-        let file_name = format!("ADR-{:03}-{}.md", adr_number, slugify(&subject_for_context(context)));
+        let file_name = format!(
+            "ADR-{:03}-{}.md",
+            adr_number,
+            slugify(&subject_for_context(context))
+        );
         fs::write(output.join(&file_name), render_adr(adr_number, context))?;
         index.push_str(&format!(
             "- [ADR-{:03}: {}]({})\n",
@@ -56,14 +60,19 @@ fn render_adr(number: usize, context: &CommitContext) -> String {
     };
     let mut text = String::new();
     text.push_str(&format!("# ADR-{:03}: {}\n\n", number, subject));
-    text.push_str(&format!("## Status\nAccepted (Commit: {})\n\n", context.commit));
+    text.push_str(&format!(
+        "## Status\nAccepted (Commit: {})\n\n",
+        context.commit
+    ));
     text.push_str(&format!("## Date\n{}\n\n", context.timestamp));
     text.push_str(&format!("## Author\n{}\n\n", author));
     text.push_str("## Context\n");
     if let Some(summary) = context.analysis.diff.summary() {
         text.push_str(&format!("{summary}\n\n"));
     } else {
-        text.push_str("Captured commit context suggests a notable architectural or product decision.\n\n");
+        text.push_str(
+            "Captured commit context suggests a notable architectural or product decision.\n\n",
+        );
     }
     text.push_str("## Decision\n");
     text.push_str(&format!(
@@ -82,8 +91,7 @@ fn render_adr(number: usize, context: &CommitContext) -> String {
     }
     text.push_str(&format!(
         "- Risk level: {}\n- Scope: {}\n",
-        context.analysis.intent.risk,
-        context.analysis.intent.scope
+        context.analysis.intent.risk, context.analysis.intent.scope
     ));
     text.push_str("\n## Related Files\n");
     if context.files.is_empty() {
@@ -102,8 +110,10 @@ fn is_decision_worthy(context: &CommitContext) -> bool {
     let risk = &context.analysis.intent.risk;
     let scope = &context.analysis.intent.scope;
 
-    matches!(category, ChangeCategory::Feature | ChangeCategory::Refactor | ChangeCategory::Performance)
-        || matches!(risk, RiskLevel::High | RiskLevel::Critical)
+    matches!(
+        category,
+        ChangeCategory::Feature | ChangeCategory::Refactor | ChangeCategory::Performance
+    ) || matches!(risk, RiskLevel::High | RiskLevel::Critical)
         || matches!(scope, ChangeScope::Broad)
         || context.analysis.intent.breaking_change
         || subject.contains("migrate")
@@ -143,4 +153,3 @@ fn slugify(input: &str) -> String {
 
     output.trim_matches('-').to_string()
 }
-

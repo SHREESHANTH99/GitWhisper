@@ -79,12 +79,8 @@ pub fn explain_file(file: &str, api_key: &str) {
     let fallback = heuristic_explanation(&normalized_file, &history, &predicted_files);
 
     let prompt_budget = config.ai.prompt_char_budget.max(2_000);
-    let (prompt, prompt_detail, selected_indices) = build_prompt_with_budget(
-        &normalized_file,
-        &history,
-        &predicted_files,
-        prompt_budget,
-    );
+    let (prompt, prompt_detail, selected_indices) =
+        build_prompt_with_budget(&normalized_file, &history, &predicted_files, prompt_budget);
     let history_hash = prompt_history_hash(
         &base_history_hash,
         prompt_budget,
@@ -268,7 +264,11 @@ fn build_prompt_with_budget(
 
     let mut selected = Vec::with_capacity(max_commits);
     selected.push(0);
-    for entry in ranked.iter().filter(|entry| entry.index != 0).take(max_commits - 1) {
+    for entry in ranked
+        .iter()
+        .filter(|entry| entry.index != 0)
+        .take(max_commits - 1)
+    {
         selected.push(entry.index);
     }
     selected.sort_unstable();
@@ -281,8 +281,12 @@ fn build_prompt_with_budget(
             .filter_map(|index| history.get(*index).cloned())
             .collect::<Vec<_>>();
 
-        let prompt =
-            crate::ai::reasoning_chain::build_explain_prompt(file, &selected_history, predicted_files, detail);
+        let prompt = crate::ai::reasoning_chain::build_explain_prompt(
+            file,
+            &selected_history,
+            predicted_files,
+            detail,
+        );
 
         if prompt.chars().count() <= budget_chars {
             return (prompt, detail, selected);

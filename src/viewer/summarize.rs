@@ -252,7 +252,11 @@ fn build_prompt_with_budget(
 
     let mut selected = Vec::with_capacity(max_commits);
     selected.push(0);
-    for entry in ranked.iter().filter(|entry| entry.index != 0).take(max_commits - 1) {
+    for entry in ranked
+        .iter()
+        .filter(|entry| entry.index != 0)
+        .take(max_commits - 1)
+    {
         selected.push(entry.index);
     }
     selected.sort_unstable();
@@ -490,4 +494,3 @@ fn heuristic_summary(file: &str, history: &[HistoryEntry]) -> String {
 
     text
 }
-

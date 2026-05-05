@@ -138,4 +138,3 @@ fn push_token(tokens: &mut Vec<String>, current: &mut String) {
         tokens.push(token);
     }
 }
-

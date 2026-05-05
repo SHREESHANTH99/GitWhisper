@@ -158,7 +158,15 @@ pub fn owners_for_path(path: &str, limit: usize) -> AppResult<Vec<OwnerStat>> {
 
 pub fn add_git_note(commit: &str, note_ref: &str, message: &str) -> AppResult<()> {
     let ref_arg = format!("--ref={note_ref}");
-    let args = vec!["notes", ref_arg.as_str(), "add", "-f", "-m", message, commit];
+    let args = vec![
+        "notes",
+        ref_arg.as_str(),
+        "add",
+        "-f",
+        "-m",
+        message,
+        commit,
+    ];
     run_git(&args).map(|_| ())
 }
 

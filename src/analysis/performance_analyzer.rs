@@ -47,7 +47,10 @@ pub fn analyze_target(path: &str) -> AppResult<PerformanceReport> {
     let overall_risk = average_risk(&file_reports);
 
     if is_file {
-        let report = file_reports.into_iter().next().expect("single file report exists");
+        let report = file_reports
+            .into_iter()
+            .next()
+            .expect("single file report exists");
         return Ok(PerformanceReport {
             target: normalized,
             files_analyzed: 1,
@@ -85,9 +88,31 @@ pub(crate) fn report_for_insight(
 ) -> FilePerformanceReport {
     let content = insight.content.to_ascii_lowercase();
 
-    let nested_loop_signals = count_occurrences(&content, &["for ", "while ", ".iter().map(", ".iter().filter("]);
-    let allocation_signals = count_occurrences(&content, &[".clone()", "to_string()", "collect::<vec<_>>()", "vec::new()", "string::new()"]);
-    let io_signals = count_occurrences(&content, &["fs::read", "fs::write", "read_to_string", "write_all", "println!", "eprintln!"]);
+    let nested_loop_signals = count_occurrences(
+        &content,
+        &["for ", "while ", ".iter().map(", ".iter().filter("],
+    );
+    let allocation_signals = count_occurrences(
+        &content,
+        &[
+            ".clone()",
+            "to_string()",
+            "collect::<vec<_>>()",
+            "vec::new()",
+            "string::new()",
+        ],
+    );
+    let io_signals = count_occurrences(
+        &content,
+        &[
+            "fs::read",
+            "fs::write",
+            "read_to_string",
+            "write_all",
+            "println!",
+            "eprintln!",
+        ],
+    );
 
     let mut findings = Vec::new();
     let mut suggestions = Vec::new();
@@ -186,7 +211,10 @@ pub(crate) fn report_for_insight(
 }
 
 fn count_occurrences(content: &str, patterns: &[&str]) -> usize {
-    patterns.iter().map(|pattern| content.matches(pattern).count()).sum()
+    patterns
+        .iter()
+        .map(|pattern| content.matches(pattern).count())
+        .sum()
 }
 
 fn average_risk(file_reports: &[FilePerformanceReport]) -> u32 {
@@ -206,7 +234,10 @@ fn build_findings(file_reports: &[FilePerformanceReport]) -> Vec<String> {
         .take(4)
         .collect::<Vec<_>>();
     if hotspots.is_empty() {
-        return vec!["No broad directory-level performance hotspot stands out from current heuristics.".to_string()];
+        return vec![
+            "No broad directory-level performance hotspot stands out from current heuristics."
+                .to_string(),
+        ];
     }
 
     vec![format!(
@@ -218,7 +249,9 @@ fn build_findings(file_reports: &[FilePerformanceReport]) -> Vec<String> {
 fn build_suggestions(file_reports: &[FilePerformanceReport]) -> Vec<String> {
     let top = file_reports.iter().take(3).collect::<Vec<_>>();
     if top.is_empty() {
-        return vec!["Keep collecting commit context to improve future performance reports.".to_string()];
+        return vec![
+            "Keep collecting commit context to improve future performance reports.".to_string(),
+        ];
     }
 
     vec![format!(

@@ -219,7 +219,7 @@ impl AppDatabase for PostgresDatabase {
         let mut client = self.connect()?;
         client.execute(
             "INSERT INTO audit_events (timestamp, actor, action, target, outcome, metadata)
-             VALUES ($1::timestamptz, $2, $3, $4, $5, $6::jsonb)",
+             VALUES ($1::text::timestamptz, $2, $3, $4, $5, $6::text::jsonb)",
             &[
                 &event.timestamp,
                 &event.actor,
@@ -249,7 +249,8 @@ impl AppDatabase for PostgresDatabase {
                 action: row.get::<_, String>(2),
                 target: row.get::<_, String>(3),
                 outcome: row.get::<_, String>(4),
-                metadata: serde_json::from_str(&row.get::<_, String>(5)).unwrap_or(serde_json::Value::Null),
+                metadata: serde_json::from_str(&row.get::<_, String>(5))
+                    .unwrap_or(serde_json::Value::Null),
             })
             .collect())
     }
@@ -257,7 +258,7 @@ impl AppDatabase for PostgresDatabase {
     fn prune_audit_events_before(&self, cutoff_rfc3339: &str) -> AppResult<usize> {
         let mut client = self.connect()?;
         let removed = client.execute(
-            "DELETE FROM audit_events WHERE timestamp < $1::timestamptz",
+            "DELETE FROM audit_events WHERE timestamp < $1::text::timestamptz",
             &[&cutoff_rfc3339],
         )?;
         Ok(removed as usize)
@@ -267,7 +268,7 @@ impl AppDatabase for PostgresDatabase {
         let mut client = self.connect()?;
         client.execute(
             "INSERT INTO feedback (id, timestamp, commit_hash, actor, rating, feedback, tags)
-             VALUES ($1, $2::timestamptz, $3, $4, $5, $6, $7::jsonb)
+             VALUES ($1, $2::text::timestamptz, $3, $4, $5, $6, $7::text::jsonb)
              ON CONFLICT (id) DO UPDATE SET
                timestamp = EXCLUDED.timestamp,
                commit_hash = EXCLUDED.commit_hash,

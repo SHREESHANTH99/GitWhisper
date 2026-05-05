@@ -61,17 +61,11 @@ pub enum Commands {
         api_key: String,
     },
     /// Analyze code quality risk for a file or directory.
-    Quality {
-        path: String,
-    },
+    Quality { path: String },
     /// Analyze security risk for a file or directory.
-    Security {
-        path: String,
-    },
+    Security { path: String },
     /// Analyze performance risk for a file or directory.
-    Performance {
-        path: String,
-    },
+    Performance { path: String },
     /// Predict which files are most bug-prone.
     BugPredict {
         path: Option<String>,

@@ -47,7 +47,9 @@ pub fn analyze_target(path: &str, limit: usize) -> AppResult<KnowledgeRiskReport
 
             if insight.unique_authors <= 1 && insight.history.len() >= 4 {
                 risk_score += 24;
-                reasons.push("Only one contributor appears in the observed ownership history.".to_string());
+                reasons.push(
+                    "Only one contributor appears in the observed ownership history.".to_string(),
+                );
             } else if insight.unique_authors == 2 && insight.history.len() >= 6 {
                 risk_score += 10;
                 reasons.push("Knowledge is mostly held by only two contributors.".to_string());
@@ -55,7 +57,8 @@ pub fn analyze_target(path: &str, limit: usize) -> AppResult<KnowledgeRiskReport
 
             if insight.approx_loc >= 300 && insight.unique_authors <= 2 {
                 risk_score += 12;
-                reasons.push("The file is large while knowledge spread remains narrow.".to_string());
+                reasons
+                    .push("The file is large while knowledge spread remains narrow.".to_string());
             }
 
             let last_commit = insight
@@ -75,7 +78,10 @@ pub fn analyze_target(path: &str, limit: usize) -> AppResult<KnowledgeRiskReport
                     file
                 )
             } else {
-                format!("Knowledge distribution for `{}` looks manageable right now.", file)
+                format!(
+                    "Knowledge distribution for `{}` looks manageable right now.",
+                    file
+                )
             };
 
             if reasons.is_empty() {
