@@ -68,11 +68,6 @@ Git history contains everything — but understanding it requires hours of readi
 
 ---
 
-## 🏗 Architecture
-
-### High-Level System Design
-
-![High-Level System Design](docs/flowcharts/Django%20Form%20Modification-2026-05-05-175419.png)
 
 ### Module Map
 
@@ -90,11 +85,6 @@ Every `git commit` triggers an automatic capture pipeline:
 
 ---
 
-### 2️⃣ Semantic Analysis Pipeline
-
-![Semantic Analysis Pipeline](docs/flowcharts/Django%20Form%20Modification-2026-05-05-175642.png)
-
----
 
 ### 3️⃣ AI Explain Pipeline
 
