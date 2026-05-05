@@ -1,0 +1,48 @@
+<svg width="1200" height="430" viewBox="0 0 1200 430" fill="none" xmlns="http://www.w3.org/2000/svg" role="img" aria-labelledby="title desc">
+  <title id="title">GitWhisper architecture layers</title>
+  <desc id="desc">A layered diagram showing capture, intelligence, collaboration, storage, and delivery surfaces in GitWhisper.</desc>
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="1200" y2="430" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#071110"/>
+      <stop offset="1" stop-color="#101a19"/>
+    </linearGradient>
+    <linearGradient id="accent" x1="110" y1="80" x2="1110" y2="350" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#7be0bc"/>
+      <stop offset="0.5" stop-color="#ffd166"/>
+      <stop offset="1" stop-color="#fb923c"/>
+    </linearGradient>
+    <filter id="shadow" x="-20%" y="-25%" width="140%" height="160%" color-interpolation-filters="sRGB">
+      <feDropShadow dx="0" dy="16" stdDeviation="18" flood-color="#000000" flood-opacity="0.34"/>
+    </filter>
+  </defs>
+  <rect width="1200" height="430" rx="28" fill="url(#bg)"/>
+  <path d="M110 82C220 38 334 34 452 72C579 113 692 109 804 76C923 39 1022 47 1110 98" stroke="url(#accent)" stroke-width="4" stroke-linecap="round"/>
+  <text x="72" y="82" fill="#f4fff8" font-family="Segoe UI, Arial, sans-serif" font-size="34" font-weight="800">GitWhisper platform layers</text>
+  <text x="72" y="112" fill="#a8bdb3" font-family="Segoe UI, Arial, sans-serif" font-size="16">The same repository signal flows through capture, analysis, AI, collaboration, storage, and reporting.</text>
+
+  <g filter="url(#shadow)">
+    <rect x="70" y="150" width="1060" height="56" rx="18" fill="#14211f" stroke="#28433d"/>
+    <text x="98" y="184" fill="#7be0bc" font-family="Segoe UI, Arial, sans-serif" font-size="18" font-weight="800">Capture</text>
+    <text x="238" y="184" fill="#d3e6de" font-family="Segoe UI, Arial, sans-serif" font-size="15">git commit • post-commit hook • IDE context • environment • review signals</text>
+
+    <rect x="110" y="224" width="1020" height="62" rx="20" fill="#172722" stroke="#2d4b43"/>
+    <text x="138" y="260" fill="#ffd166" font-family="Segoe UI, Arial, sans-serif" font-size="18" font-weight="800">Intelligence</text>
+    <text x="340" y="260" fill="#d3e6de" font-family="Segoe UI, Arial, sans-serif" font-size="15">diff parsing • intent detection • impact analysis • quality / security / performance heuristics</text>
+
+    <rect x="150" y="304" width="940" height="62" rx="20" fill="#1a2620" stroke="#35534a"/>
+    <text x="178" y="340" fill="#fb923c" font-family="Segoe UI, Arial, sans-serif" font-size="18" font-weight="800">Delivery</text>
+    <text x="316" y="340" fill="#d3e6de" font-family="Segoe UI, Arial, sans-serif" font-size="15">CLI reports • Git notes • wiki pages • ADRs • Slack / Discord • PR / MR summaries</text>
+  </g>
+
+  <g filter="url(#shadow)">
+    <rect x="70" y="150" width="150" height="150" rx="22" fill="#0f1b1a" stroke="#27413c"/>
+    <text x="97" y="224" fill="#7be0bc" font-family="Segoe UI, Arial, sans-serif" font-size="17" font-weight="800">Local-first</text>
+    <text x="97" y="250" fill="#bfd4cc" font-family="Segoe UI, Arial, sans-serif" font-size="13">JSON storage</text>
+    <text x="97" y="272" fill="#bfd4cc" font-family="Segoe UI, Arial, sans-serif" font-size="13">Git notes</text>
+
+    <rect x="980" y="150" width="150" height="150" rx="22" fill="#0f1b1a" stroke="#27413c"/>
+    <text x="1008" y="224" fill="#ffd166" font-family="Segoe UI, Arial, sans-serif" font-size="17" font-weight="800">Team-ready</text>
+    <text x="1008" y="250" fill="#bfd4cc" font-family="Segoe UI, Arial, sans-serif" font-size="13">PostgreSQL</text>
+    <text x="1008" y="272" fill="#bfd4cc" font-family="Segoe UI, Arial, sans-serif" font-size="13">Dashboards</text>
+  </g>
+</svg>
