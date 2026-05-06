@@ -3,5 +3,5 @@
 build.log
 exports/
 .gitwhisper.local.toml
-docs/flowcharts/
+docs/
 .DS_Store
