@@ -1,5 +1,3 @@
-version: "3.9"
-
 services:
   gitwhisper:
     build:
@@ -11,6 +9,7 @@ services:
     environment:
       GEMINI_API_KEY: ${GEMINI_API_KEY:-}
       GITWHISPER_USER: ${GITWHISPER_USER:-docker-admin}
+      GITWHISPER_DATABASE_BACKEND: ${GITWHISPER_DATABASE_BACKEND:-postgres}
       GITWHISPER_POSTGRES_URL: ${GITWHISPER_POSTGRES_URL:-postgres://postgres:postgres@postgres:5432/gitwhisper}
     command: ["dashboard", "--host", "0.0.0.0", "--port", "7878"]
     ports:
@@ -31,7 +30,7 @@ services:
     environment:
       POSTGRES_DB: gitwhisper
       POSTGRES_USER: postgres
-      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-postgres}
     ports:
       - "55432:5432"
     volumes:

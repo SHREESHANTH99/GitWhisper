@@ -1,7 +1,7 @@
 use dirs::home_dir;
 use std::collections::HashSet;
 use std::fs;
-use std::path::PathBuf;
+use std::path::{Path, PathBuf};
 
 pub fn recent_commands(limit: usize) -> Vec<String> {
     let Some(home) = home_dir() else {
@@ -30,7 +30,7 @@ pub(crate) fn sanitize_command(command: &str) -> String {
     redact_setx(&redacted)
 }
 
-fn history_files(home: &PathBuf) -> Vec<PathBuf> {
+fn history_files(home: &Path) -> Vec<PathBuf> {
     vec![
         home.join(".bash_history"),
         home.join(".zsh_history"),

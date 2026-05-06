@@ -1,0 +1,9 @@
+.git
+.github
+target
+.env
+exports
+docs/flowcharts
+build.log
+*.log
+.DS_Store

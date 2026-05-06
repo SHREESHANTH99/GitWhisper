@@ -1,2 +1,7 @@
 /target
 .env
+build.log
+exports/
+.gitwhisper.local.toml
+docs/flowcharts/
+.DS_Store

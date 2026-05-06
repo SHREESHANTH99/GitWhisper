@@ -260,7 +260,7 @@ fn build_prompt_with_budget(
     budget_chars: usize,
 ) -> (String, crate::ai::reasoning_chain::PromptDetail, Vec<usize>) {
     let ranked = crate::ai::context_optimizer::rank_history(file, history);
-    let max_commits = history.len().min(25).max(1);
+    let max_commits = history.len().clamp(1, 25);
 
     let mut selected = Vec::with_capacity(max_commits);
     selected.push(0);

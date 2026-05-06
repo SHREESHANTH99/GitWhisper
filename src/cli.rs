@@ -3,6 +3,7 @@ use clap::{Parser, Subcommand, ValueEnum};
 #[derive(Parser)]
 #[command(
     name = "gitwhisper",
+    version,
     about = "AI-powered Git commit intelligence for developers"
 )]
 pub struct Cli {

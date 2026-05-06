@@ -188,6 +188,7 @@ pub struct FeedbackConfig {
     pub allow_anonymous: bool,
 }
 
+#[allow(clippy::derivable_impls)]
 impl Default for AppConfig {
     fn default() -> Self {
         Self {
@@ -219,6 +220,7 @@ impl Default for AiConfig {
     }
 }
 
+#[allow(clippy::derivable_impls)]
 impl Default for AiProvider {
     fn default() -> Self {
         Self::Cloud
@@ -247,6 +249,7 @@ impl Default for CollaborationConfig {
     }
 }
 
+#[allow(clippy::derivable_impls)]
 impl Default for IntegrationsConfig {
     fn default() -> Self {
         Self {
@@ -258,6 +261,7 @@ impl Default for IntegrationsConfig {
     }
 }
 
+#[allow(clippy::derivable_impls)]
 impl Default for SlackConfig {
     fn default() -> Self {
         Self {
@@ -271,6 +275,7 @@ impl Default for SlackConfig {
     }
 }
 
+#[allow(clippy::derivable_impls)]
 impl Default for DiscordConfig {
     fn default() -> Self {
         Self {
@@ -326,6 +331,7 @@ impl Default for DatabaseConfig {
     }
 }
 
+#[allow(clippy::derivable_impls)]
 impl Default for DatabaseBackend {
     fn default() -> Self {
         Self::Json
@@ -352,12 +358,14 @@ impl Default for AuthConfig {
     }
 }
 
+#[allow(clippy::derivable_impls)]
 impl Default for AuthMode {
     fn default() -> Self {
         Self::Disabled
     }
 }
 
+#[allow(clippy::derivable_impls)]
 impl Default for UserRole {
     fn default() -> Self {
         Self::Viewer

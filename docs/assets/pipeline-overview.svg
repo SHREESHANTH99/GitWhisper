@@ -1,64 +1,71 @@
-<svg width="1200" height="460" viewBox="0 0 1200 460" fill="none" xmlns="http://www.w3.org/2000/svg" role="img" aria-labelledby="title desc">
+<svg width="1200" height="420" viewBox="0 0 1200 420" fill="none" xmlns="http://www.w3.org/2000/svg" role="img" aria-labelledby="title desc">
   <title id="title">GitWhisper pipeline overview</title>
-  <desc id="desc">A pipeline diagram showing commit capture, semantic analysis, context optimization, AI explanation, outputs, and storage.</desc>
+  <desc id="desc">A pipeline diagram showing capture, analysis, explanation, and sharing for GitWhisper.</desc>
   <defs>
-    <linearGradient id="bg" x1="0" y1="0" x2="1200" y2="460" gradientUnits="userSpaceOnUse">
-      <stop stop-color="#f6faf7"/>
-      <stop offset="1" stop-color="#eef4f0"/>
-    </linearGradient>
-    <filter id="shadow" x="-20%" y="-25%" width="140%" height="160%" color-interpolation-filters="sRGB">
-      <feDropShadow dx="0" dy="12" stdDeviation="12" flood-color="#1a2e26" flood-opacity="0.14"/>
-    </filter>
+    <style>
+      .page-bg { fill: #0a0f0e; }
+      .card-bg { fill: #0d1816; stroke: #1e5449; stroke-width: 1.5; }
+      .main-box { fill: #0f2620; stroke: #1e5449; stroke-width: 1.5; }
+      .flow-box { fill: #0f2620; stroke: #1e5449; stroke-width: 1.5; }
+      .title-main { fill: #ffffff; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; font-size: 24px; font-weight: 700; }
+      .title-sub { fill: #9aa9a0; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; font-size: 12px; }
+      .button-text { fill: #ffffff; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; font-size: 12px; font-weight: 600; }
+      .flow-label { fill: #ffffff; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; font-size: 15px; font-weight: 700; }
+      .flow-desc { fill: #9aa9a0; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; font-size: 10.5px; }
+      .flow-line { stroke: #fbbf24; stroke-width: 1.5; fill: none; stroke-linecap: round; stroke-linejoin: round; }
+      .button-border { stroke: #4ade80; stroke-width: 1.5; fill: none; }
+      .button-border-orange { stroke: #fb923c; stroke-width: 1.5; fill: none; }
+    </style>
   </defs>
-  <rect width="1200" height="460" rx="26" fill="url(#bg)"/>
-  <text x="70" y="70" fill="#10201b" font-family="Segoe UI, Arial, sans-serif" font-size="34" font-weight="800">How a commit becomes intelligence</text>
-  <text x="72" y="104" fill="#536b61" font-family="Segoe UI, Arial, sans-serif" font-size="16">The CLI stitches together repository facts, local context, analyzers, AI prompts, collaboration, and persistence.</text>
-  <g filter="url(#shadow)">
-    <rect x="70" y="154" width="150" height="92" rx="18" fill="#ffffff" stroke="#cfe2da"/>
-    <text x="106" y="188" fill="#0f3f35" font-family="Segoe UI, Arial, sans-serif" font-size="17" font-weight="800">Commit</text>
-    <text x="97" y="216" fill="#5f766c" font-family="Segoe UI, Arial, sans-serif" font-size="13">Git diff + HEAD</text>
-    <rect x="270" y="154" width="150" height="92" rx="18" fill="#ffffff" stroke="#cfe2da"/>
-    <text x="309" y="188" fill="#0f3f35" font-family="Segoe UI, Arial, sans-serif" font-size="17" font-weight="800">Capture</text>
-    <text x="297" y="216" fill="#5f766c" font-family="Segoe UI, Arial, sans-serif" font-size="13">IDE, env, tests</text>
-    <rect x="470" y="154" width="150" height="92" rx="18" fill="#ffffff" stroke="#cfe2da"/>
-    <text x="508" y="188" fill="#0f3f35" font-family="Segoe UI, Arial, sans-serif" font-size="17" font-weight="800">Analyze</text>
-    <text x="496" y="216" fill="#5f766c" font-family="Segoe UI, Arial, sans-serif" font-size="13">Intent + impact</text>
-    <rect x="670" y="154" width="150" height="92" rx="18" fill="#ffffff" stroke="#cfe2da"/>
-    <text x="706" y="188" fill="#0f3f35" font-family="Segoe UI, Arial, sans-serif" font-size="17" font-weight="800">Optimize</text>
-    <text x="694" y="216" fill="#5f766c" font-family="Segoe UI, Arial, sans-serif" font-size="13">Relevant context</text>
-    <rect x="870" y="154" width="150" height="92" rx="18" fill="#ffffff" stroke="#cfe2da"/>
-    <text x="921" y="188" fill="#0f3f35" font-family="Segoe UI, Arial, sans-serif" font-size="17" font-weight="800">AI</text>
-    <text x="898" y="216" fill="#5f766c" font-family="Segoe UI, Arial, sans-serif" font-size="13">Cloud/local/hybrid</text>
+
+  <rect width="1200" height="420" class="page-bg"/>
+  <rect x="30" y="20" width="1140" height="380" rx="18" class="card-bg"/>
+
+  <g>
+    <rect x="60" y="60" width="420" height="280" rx="16" class="main-box"/>
+    <text x="85" y="105" class="title-main">GitWhisper</text>
+    <text x="85" y="135" class="title-sub">Commit intelligence for teams who need the why,</text>
+    <text x="85" y="152" class="title-sub">the risk, and the next best action.</text>
+
+    <rect x="85" y="185" width="90" height="32" rx="16" class="button-border"/>
+    <text x="97" y="206" class="button-text" style="fill: #4ade80;">Rust CLI</text>
+
+    <rect x="185" y="185" width="120" height="32" rx="16" class="button-border-orange"/>
+    <text x="198" y="206" class="button-text" style="fill: #fb923c;">Local-first AI</text>
+
+    <rect x="315" y="185" width="70" height="32" rx="16" class="button-border-orange"/>
+    <text x="332" y="206" class="button-text" style="fill: #fb923c;">Team</text>
   </g>
-  <g stroke="#78b69e" stroke-width="3" stroke-linecap="round">
-    <path d="M220 200H270"/>
-    <path d="M420 200H470"/>
-    <path d="M620 200H670"/>
-    <path d="M820 200H870"/>
+
+  <g>
+    <rect x="540" y="80" width="170" height="86" rx="12" class="flow-box"/>
+    <text x="558" y="110" class="flow-label" style="fill: #4ade80;">Capture</text>
+    <text x="558" y="132" class="flow-desc">Git + IDE + CI</text>
+    <path d="M 625 166 L 625 196" class="flow-line"/>
+    <polygon points="625,201 620,193 630,193" fill="#fbbf24"/>
   </g>
-  <g fill="#78b69e">
-    <path d="M264 194L276 200L264 206V194Z"/>
-    <path d="M464 194L476 200L464 206V194Z"/>
-    <path d="M664 194L676 200L664 206V194Z"/>
-    <path d="M864 194L876 200L864 206V194Z"/>
+
+  <g>
+    <rect x="540" y="196" width="170" height="86" rx="12" class="flow-box"/>
+    <text x="558" y="226" class="flow-label" style="fill: #fbbf24;">Analyze</text>
+    <text x="558" y="248" class="flow-desc">Intent + impact</text>
+    <path d="M 710 239 L 745 239" class="flow-line"/>
+    <polygon points="750,239 742,244 742,234" fill="#fbbf24"/>
   </g>
-  <g filter="url(#shadow)">
-    <rect x="255" y="318" width="178" height="70" rx="16" fill="#10201b"/>
-    <text x="292" y="347" fill="#ffffff" font-family="Segoe UI, Arial, sans-serif" font-size="15" font-weight="800">Storage</text>
-    <text x="286" y="370" fill="#bad7ca" font-family="Segoe UI, Arial, sans-serif" font-size="12">JSON or Postgres</text>
-    <rect x="510" y="318" width="178" height="70" rx="16" fill="#10201b"/>
-    <text x="558" y="347" fill="#ffffff" font-family="Segoe UI, Arial, sans-serif" font-size="15" font-weight="800">Outputs</text>
-    <text x="537" y="370" fill="#bad7ca" font-family="Segoe UI, Arial, sans-serif" font-size="12">CLI, wiki, ADRs</text>
-    <rect x="765" y="318" width="178" height="70" rx="16" fill="#10201b"/>
-    <text x="800" y="347" fill="#ffffff" font-family="Segoe UI, Arial, sans-serif" font-size="15" font-weight="800">Collaboration</text>
-    <text x="799" y="370" fill="#bad7ca" font-family="Segoe UI, Arial, sans-serif" font-size="12">Git notes, PRs, Slack</text>
+
+  <g>
+    <rect x="755" y="196" width="170" height="86" rx="12" class="flow-box"/>
+    <text x="773" y="226" class="flow-label" style="fill: #fbbf24;">Explain</text>
+    <text x="773" y="248" class="flow-desc">Gemini + Ollama</text>
+    <path d="M 925 239 L 960 239" class="flow-line"/>
+    <polygon points="965,239 957,244 957,234" fill="#fb923c"/>
   </g>
-  <path d="M345 246V318" stroke="#f59e0b" stroke-width="3" stroke-linecap="round"/>
-  <path d="M945 246C945 292 599 286 599 318" stroke="#f59e0b" stroke-width="3" stroke-linecap="round"/>
-  <path d="M945 246V288C945 306 854 306 854 318" stroke="#f59e0b" stroke-width="3" stroke-linecap="round"/>
-  <g fill="#f59e0b">
-    <path d="M339 310L345 322L351 310H339Z"/>
-    <path d="M593 310L599 322L605 310H593Z"/>
-    <path d="M848 310L854 322L860 310H848Z"/>
+
+  <g>
+    <rect x="970" y="196" width="170" height="86" rx="12" class="flow-box"/>
+    <text x="988" y="226" class="flow-label" style="fill: #fb923c;">Share</text>
+    <text x="988" y="248" class="flow-desc">PRs + Slack</text>
   </g>
+
+  <path d="M 625 80 Q 700 52 820 80" stroke="#fb923c" stroke-width="1.5" fill="none" stroke-linecap="round" opacity="0.6"/>
 </svg>

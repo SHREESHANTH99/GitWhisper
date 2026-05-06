@@ -2,7 +2,7 @@ use crate::analysis::{DiffSummary, ImpactSummary};
 use crate::error::AppResult;
 use std::collections::{BTreeSet, HashMap, HashSet, VecDeque};
 use std::fs;
-use std::path::{Path, PathBuf};
+use std::path::Path;
 use walkdir::WalkDir;
 
 pub fn analyze_impact(changed_files: &[String], diff: &DiffSummary) -> AppResult<ImpactSummary> {
@@ -282,6 +282,7 @@ fn detect_cycles(
         .collect()
 }
 
+#[allow(clippy::too_many_arguments)]
 fn dfs_cycles(
     start: &str,
     current: &str,
@@ -453,7 +454,7 @@ fn extract_quoted_dependency(line: &str) -> Option<String> {
     Some(line[start..end].to_string())
 }
 
-fn path_to_repo_relative(root: &Path, absolute: &PathBuf) -> String {
+fn path_to_repo_relative(root: &Path, absolute: &Path) -> String {
     absolute
         .strip_prefix(root)
         .map(|path| path.to_string_lossy().to_string())
@@ -501,7 +502,7 @@ mod tests {
         let transitive = collect_dependents(&changed, &reverse, 3);
         let _ = fs::remove_dir_all(&root);
 
-        assert!(direct.contains(&"src/service.rs".to_string()));
-        assert!(transitive.contains(&"src/api.rs".to_string()));
+        assert!(direct.contains("src/service.rs"));
+        assert!(transitive.contains("src/api.rs"));
     }
 }

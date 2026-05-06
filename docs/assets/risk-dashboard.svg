@@ -1,56 +1,114 @@
-<svg width="1200" height="520" viewBox="0 0 1200 520" fill="none" xmlns="http://www.w3.org/2000/svg" role="img" aria-labelledby="title desc">
-  <title id="title">GitWhisper risk dashboard illustration</title>
-  <desc id="desc">An illustrative dashboard showing quality, security, performance, bug prediction, refactor priority, and knowledge risk signals.</desc>
-  <rect width="1200" height="520" rx="26" fill="#0b1110"/>
-  <rect x="44" y="40" width="1112" height="440" rx="22" fill="#121c1a" stroke="#263b36"/>
-  <text x="80" y="92" fill="#f3fff8" font-family="Segoe UI, Arial, sans-serif" font-size="28" font-weight="800">Engineering Health Snapshot</text>
-  <text x="82" y="122" fill="#93aaa0" font-family="Segoe UI, Arial, sans-serif" font-size="15">A practical view of risk created from Git history, analyzers, ownership, and feedback.</text>
+<svg width="1200" height="550" viewBox="0 0 1200 550" fill="none" xmlns="http://www.w3.org/2000/svg" role="img" aria-labelledby="title desc">
+  <defs>
+    <style>
+      .metric-card-bg { fill: #0f2620; stroke: #1e5449; stroke-width: 2; }
+      .metric-title { fill: #ffffff; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; font-size: 16px; font-weight: 700; }
+      .metric-value { fill: #ffffff; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; font-size: 32px; font-weight: 700; }
+      .metric-label { fill: #a0a9a6; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; font-size: 13px; }
+      .section-title { fill: #ffffff; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; font-size: 18px; font-weight: 700; }
+      .page-title { fill: #ffffff; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; font-size: 26px; font-weight: 800; }
+      .page-subtitle { fill: #8a9a95; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; font-size: 14px; }
+      .bg-card { fill: #0a1612; stroke: #1a3a35; stroke-width: 2; }
+    </style>
+  </defs>
+
+  <!-- Background -->
+  <rect width="1200" height="550" fill="#020403"/>
+  
+  <!-- Main container -->
+  <rect x="30" y="30" width="1140" height="490" rx="20" class="bg-card"/>
+
+  <!-- Title Section -->
+  <text x="60" y="80" class="page-title">Engineering Health Snapshot</text>
+  <text x="60" y="105" class="page-subtitle">A practical view of risk created from Git history, analyzers, ownership, and feedback.</text>
+
+  <!-- TOP ROW: Metric Cards -->
+  
+  <!-- Quality Risk Card -->
   <g>
-    <rect x="80" y="160" width="220" height="120" rx="16" fill="#182824" stroke="#34554d"/>
-    <text x="106" y="196" fill="#72e0b8" font-family="Segoe UI, Arial, sans-serif" font-size="16" font-weight="800">Quality Risk</text>
-    <rect x="106" y="220" width="150" height="12" rx="6" fill="#28443c"/>
-    <rect x="106" y="220" width="104" height="12" rx="6" fill="#72e0b8"/>
-    <text x="106" y="254" fill="#d7eee4" font-family="Segoe UI, Arial, sans-serif" font-size="24" font-weight="800">69</text>
+    <rect x="60" y="130" width="240" height="140" rx="16" class="metric-card-bg"/>
+    <text x="85" y="160" class="metric-title" style="fill: #4ade80;">Quality Risk</text>
+    <!-- Progress bar background -->
+    <rect x="85" y="175" width="170" height="16" rx="8" fill="#1a3a35" stroke="#0f2620" stroke-width="1"/>
+    <!-- Progress bar fill (69%) -->
+    <rect x="85" y="175" width="117" height="16" rx="8" fill="#4ade80"/>
+    <!-- Value -->
+    <text x="85" y="230" class="metric-value" style="fill: #4ade80;">69</text>
   </g>
+
+  <!-- Security Signals Card -->
   <g>
-    <rect x="330" y="160" width="220" height="120" rx="16" fill="#182824" stroke="#34554d"/>
-    <text x="356" y="196" fill="#ffd166" font-family="Segoe UI, Arial, sans-serif" font-size="16" font-weight="800">Security Signals</text>
-    <rect x="356" y="220" width="150" height="12" rx="6" fill="#4b3e1d"/>
-    <rect x="356" y="220" width="74" height="12" rx="6" fill="#ffd166"/>
-    <text x="356" y="254" fill="#fff1be" font-family="Segoe UI, Arial, sans-serif" font-size="24" font-weight="800">42</text>
+    <rect x="330" y="130" width="240" height="140" rx="16" class="metric-card-bg"/>
+    <text x="355" y="160" class="metric-title" style="fill: #fbbf24;">Security Signals</text>
+    <!-- Progress bar background -->
+    <rect x="355" y="175" width="170" height="16" rx="8" fill="#3f2b1a" stroke="#1a3a35" stroke-width="1"/>
+    <!-- Progress bar fill (42%) -->
+    <rect x="355" y="175" width="71" height="16" rx="8" fill="#fbbf24"/>
+    <!-- Value -->
+    <text x="355" y="230" class="metric-value" style="fill: #fbbf24;">42</text>
   </g>
+
+  <!-- Performance Risk Card -->
   <g>
-    <rect x="580" y="160" width="220" height="120" rx="16" fill="#182824" stroke="#34554d"/>
-    <text x="606" y="196" fill="#fb923c" font-family="Segoe UI, Arial, sans-serif" font-size="16" font-weight="800">Performance Risk</text>
-    <rect x="606" y="220" width="150" height="12" rx="6" fill="#4a2e19"/>
-    <rect x="606" y="220" width="118" height="12" rx="6" fill="#fb923c"/>
-    <text x="606" y="254" fill="#ffd9bd" font-family="Segoe UI, Arial, sans-serif" font-size="24" font-weight="800">78</text>
+    <rect x="600" y="130" width="240" height="140" rx="16" class="metric-card-bg"/>
+    <text x="625" y="160" class="metric-title" style="fill: #fb923c;">Performance Risk</text>
+    <!-- Progress bar background -->
+    <rect x="625" y="175" width="170" height="16" rx="8" fill="#4a2e1a" stroke="#1a3a35" stroke-width="1"/>
+    <!-- Progress bar fill (78%) -->
+    <rect x="625" y="175" width="133" height="16" rx="8" fill="#fb923c"/>
+    <!-- Value -->
+    <text x="625" y="230" class="metric-value" style="fill: #fb923c;">78</text>
   </g>
+
+  <!-- Knowledge Risk Card -->
   <g>
-    <rect x="830" y="160" width="250" height="120" rx="16" fill="#182824" stroke="#34554d"/>
-    <text x="856" y="196" fill="#e5f4ed" font-family="Segoe UI, Arial, sans-serif" font-size="16" font-weight="800">Knowledge Risk</text>
-    <circle cx="885" cy="236" r="22" fill="#72e0b8" fill-opacity="0.18" stroke="#72e0b8"/>
-    <circle cx="940" cy="236" r="22" fill="#ffd166" fill-opacity="0.18" stroke="#ffd166"/>
-    <circle cx="995" cy="236" r="22" fill="#fb923c" fill-opacity="0.18" stroke="#fb923c"/>
-    <text x="870" y="243" fill="#d7eee4" font-family="Segoe UI, Arial, sans-serif" font-size="13" font-weight="800">A</text>
-    <text x="925" y="243" fill="#fff1be" font-family="Segoe UI, Arial, sans-serif" font-size="13" font-weight="800">B</text>
-    <text x="981" y="243" fill="#ffd9bd" font-family="Segoe UI, Arial, sans-serif" font-size="13" font-weight="800">C</text>
+    <rect x="870" y="130" width="230" height="140" rx="16" class="metric-card-bg"/>
+    <text x="895" y="160" class="metric-title">Knowledge Risk</text>
+    
+    <!-- Circle A (green) -->
+    <circle cx="910" cy="210" r="26" fill="none" stroke="#4ade80" stroke-width="2"/>
+    <text x="905" y="220" class="metric-value" style="fill: #4ade80; font-size: 18px;">A</text>
+    
+    <!-- Circle B (yellow) -->
+    <circle cx="965" cy="210" r="26" fill="none" stroke="#fbbf24" stroke-width="2"/>
+    <text x="960" y="220" class="metric-value" style="fill: #fbbf24; font-size: 18px;">B</text>
+    
+    <!-- Circle C (orange) -->
+    <circle cx="1020" cy="210" r="26" fill="none" stroke="#fb923c" stroke-width="2"/>
+    <text x="1015" y="220" class="metric-value" style="fill: #fb923c; font-size: 18px;">C</text>
   </g>
+
+  <!-- BOTTOM ROW: Section Cards -->
+
+  <!-- Refactor Priority Section -->
   <g>
-    <rect x="80" y="318" width="460" height="112" rx="16" fill="#101917" stroke="#263b36"/>
-    <text x="108" y="354" fill="#f3fff8" font-family="Segoe UI, Arial, sans-serif" font-size="16" font-weight="800">Refactor Priority</text>
-    <text x="108" y="384" fill="#b8d2c8" font-family="Segoe UI, Arial, sans-serif" font-size="13">src/analysis/security_analyzer.rs</text>
-    <rect x="326" y="372" width="170" height="10" rx="5" fill="#283f39"/>
-    <rect x="326" y="372" width="145" height="10" rx="5" fill="#fb923c"/>
-    <text x="108" y="410" fill="#b8d2c8" font-family="Segoe UI, Arial, sans-serif" font-size="13">src/dashboard.rs</text>
-    <rect x="326" y="398" width="170" height="10" rx="5" fill="#283f39"/>
-    <rect x="326" y="398" width="96" height="10" rx="5" fill="#ffd166"/>
+    <rect x="60" y="295" width="510" height="200" rx="16" class="bg-card"/>
+    
+    <text x="85" y="330" class="section-title">Refactor Priority</text>
+    
+    <!-- Item 1 -->
+    <text x="85" y="370" class="metric-label" style="fill: #b8d2c8;">src/analysis/security_analyzer.rs</text>
+    <rect x="85" y="385" width="410" height="14" rx="7" fill="#1a3a35" stroke="#0f2620" stroke-width="1"/>
+    <rect x="85" y="385" width="287" height="14" rx="7" fill="#fb923c"/>
+    
+    <!-- Item 2 -->
+    <text x="85" y="430" class="metric-label" style="fill: #b8d2c8;">src/dashboard.rs</text>
+    <rect x="85" y="445" width="410" height="14" rx="7" fill="#1a3a35" stroke="#0f2620" stroke-width="1"/>
+    <rect x="85" y="445" width="205" height="14" rx="7" fill="#fbbf24"/>
   </g>
+
+  <!-- Bug Prediction Signals Section -->
   <g>
-    <rect x="590" y="318" width="490" height="112" rx="16" fill="#101917" stroke="#263b36"/>
-    <text x="618" y="354" fill="#f3fff8" font-family="Segoe UI, Arial, sans-serif" font-size="16" font-weight="800">Bug Prediction Signals</text>
-    <path d="M620 407C652 365 699 389 731 364C770 333 812 401 852 362C890 325 932 375 976 340C1006 316 1038 328 1060 306" stroke="#72e0b8" stroke-width="4" stroke-linecap="round"/>
-    <line x1="620" y1="410" x2="1062" y2="410" stroke="#314841"/>
-    <line x1="620" y1="310" x2="620" y2="410" stroke="#314841"/>
+    <rect x="600" y="295" width="500" height="200" rx="16" class="bg-card"/>
+    
+    <text x="625" y="330" class="section-title">Bug Prediction Signals</text>
+    
+    <!-- Grid lines -->
+    <line x1="625" y1="470" x2="1050" y2="470" stroke="#1a3a35" stroke-width="1"/>
+    <line x1="625" y1="350" x2="625" y2="470" stroke="#1a3a35" stroke-width="1"/>
+    
+    <!-- Curve -->
+    <path d="M 625 450 Q 750 380 875 420 T 1050 360" 
+          stroke="#4ade80" stroke-width="3" fill="none" stroke-linecap="round" stroke-linejoin="round"/>
   </g>
 </svg>

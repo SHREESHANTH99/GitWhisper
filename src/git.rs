@@ -60,8 +60,7 @@ pub fn resolve_commit(commitish: &str) -> AppResult<String> {
 }
 
 pub fn short_commit_hash_of(commitish: &str) -> AppResult<String> {
-    let short_arg = format!("--short=7");
-    run_git(&["rev-parse", &short_arg, commitish])
+    run_git(&["rev-parse", "--short=7", commitish])
 }
 
 pub fn current_branch() -> AppResult<String> {
@@ -208,7 +207,7 @@ pub fn normalize_repo_path(path: &str) -> AppResult<String> {
 fn parse_shortlog(raw: &str, limit: usize) -> Vec<OwnerStat> {
     let mut stats = raw
         .lines()
-        .filter_map(|line| parse_shortlog_line(line))
+        .filter_map(parse_shortlog_line)
         .collect::<Vec<_>>();
 
     stats.sort_by(|a, b| b.commits.cmp(&a.commits));

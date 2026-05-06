@@ -87,7 +87,7 @@ fn respond_not_found(stream: &mut TcpStream) -> AppResult<()> {
 fn respond(stream: &mut TcpStream, status: &str, content_type: &str, body: &str) -> AppResult<()> {
     let response = format!(
         "HTTP/1.1 {status}\r\nContent-Type: {content_type}\r\nContent-Length: {}\r\nConnection: close\r\n\r\n{}",
-        body.as_bytes().len(),
+        body.len(),
         body
     );
     stream.write_all(response.as_bytes())?;

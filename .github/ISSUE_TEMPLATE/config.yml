@@ -1,0 +1,5 @@
+blank_issues_enabled: true
+contact_links:
+  - name: Security vulnerability
+    url: https://github.com/SHREESHANTH99/GitWhisper/security/advisories/new
+    about: Please report vulnerabilities privately when possible.

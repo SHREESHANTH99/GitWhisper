@@ -140,7 +140,7 @@ pub fn prepare_commit_report(
     let related_history = collect_related_history(
         &changed_files,
         &resolved_commit,
-        config.ai.history_depth.max(3).min(8),
+        config.ai.history_depth.clamp(3, 8),
     );
 
     let generated = generate_commit_summary(
@@ -607,6 +607,7 @@ fn format_git_note(
     lines.join("\n")
 }
 
+#[allow(clippy::too_many_arguments)]
 fn send_webhook(
     config: &crate::config::AppConfig,
     commit: &str,

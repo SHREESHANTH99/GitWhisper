@@ -1,48 +1,75 @@
 <svg width="1200" height="430" viewBox="0 0 1200 430" fill="none" xmlns="http://www.w3.org/2000/svg" role="img" aria-labelledby="title desc">
   <title id="title">GitWhisper architecture layers</title>
-  <desc id="desc">A layered diagram showing capture, intelligence, collaboration, storage, and delivery surfaces in GitWhisper.</desc>
+  <desc id="desc">A layered diagram showing capture, analysis, collaboration, storage, and delivery surfaces in GitWhisper.</desc>
   <defs>
-    <linearGradient id="bg" x1="0" y1="0" x2="1200" y2="430" gradientUnits="userSpaceOnUse">
-      <stop stop-color="#071110"/>
-      <stop offset="1" stop-color="#101a19"/>
-    </linearGradient>
-    <linearGradient id="accent" x1="110" y1="80" x2="1110" y2="350" gradientUnits="userSpaceOnUse">
-      <stop stop-color="#7be0bc"/>
-      <stop offset="0.5" stop-color="#ffd166"/>
-      <stop offset="1" stop-color="#fb923c"/>
-    </linearGradient>
-    <filter id="shadow" x="-20%" y="-25%" width="140%" height="160%" color-interpolation-filters="sRGB">
-      <feDropShadow dx="0" dy="16" stdDeviation="18" flood-color="#000000" flood-opacity="0.34"/>
-    </filter>
+    <style>
+      .page-bg { fill: #0a0f0e; }
+      .card-bg { fill: #0d1816; stroke: #1e5449; stroke-width: 1.5; }
+      .layer-box { fill: #0f2620; stroke: #1e5449; stroke-width: 1.5; }
+      .title-main { fill: #ffffff; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; font-size: 22px; font-weight: 700; }
+      .title-sub { fill: #8a9a95; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; font-size: 11.5px; }
+      .label-green { fill: #4ade80; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; font-size: 14px; font-weight: 700; }
+      .label-yellow { fill: #fbbf24; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; font-size: 14px; font-weight: 700; }
+      .label-orange { fill: #fb923c; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; font-size: 13px; font-weight: 700; }
+      .text-body { fill: #9aa9a0; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; font-size: 11px; }
+      .text-body-sm { fill: #7a8a80; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; font-size: 10px; }
+      .flow-line { stroke: #fbbf24; stroke-width: 1.5; fill: none; stroke-linecap: round; }
+      .flow-dash { stroke: #fbbf24; stroke-width: 1.5; fill: none; stroke-linecap: round; stroke-dasharray: 4,3; }
+    </style>
   </defs>
-  <rect width="1200" height="430" rx="28" fill="url(#bg)"/>
-  <path d="M110 82C220 38 334 34 452 72C579 113 692 109 804 76C923 39 1022 47 1110 98" stroke="url(#accent)" stroke-width="4" stroke-linecap="round"/>
-  <text x="72" y="82" fill="#f4fff8" font-family="Segoe UI, Arial, sans-serif" font-size="34" font-weight="800">GitWhisper platform layers</text>
-  <text x="72" y="112" fill="#a8bdb3" font-family="Segoe UI, Arial, sans-serif" font-size="16">The same repository signal flows through capture, analysis, AI, collaboration, storage, and reporting.</text>
 
-  <g filter="url(#shadow)">
-    <rect x="70" y="150" width="1060" height="56" rx="18" fill="#14211f" stroke="#28433d"/>
-    <text x="98" y="184" fill="#7be0bc" font-family="Segoe UI, Arial, sans-serif" font-size="18" font-weight="800">Capture</text>
-    <text x="238" y="184" fill="#d3e6de" font-family="Segoe UI, Arial, sans-serif" font-size="15">git commit • post-commit hook • IDE context • environment • review signals</text>
+  <rect width="1200" height="430" class="page-bg"/>
+  <rect x="30" y="20" width="1140" height="390" rx="18" class="card-bg"/>
 
-    <rect x="110" y="224" width="1020" height="62" rx="20" fill="#172722" stroke="#2d4b43"/>
-    <text x="138" y="260" fill="#ffd166" font-family="Segoe UI, Arial, sans-serif" font-size="18" font-weight="800">Intelligence</text>
-    <text x="340" y="260" fill="#d3e6de" font-family="Segoe UI, Arial, sans-serif" font-size="15">diff parsing • intent detection • impact analysis • quality / security / performance heuristics</text>
+  <text x="55" y="50" class="title-main">GitWhisper platform layers</text>
+  <text x="55" y="68" class="title-sub">
+    <tspan x="55" dy="0">Repository signals flow through capture, analysis, AI, collaboration, storage, and reporting.</tspan>
+  </text>
+  <path d="M 140 76 Q 360 60 580 70 T 1040 76" class="flow-line"/>
 
-    <rect x="150" y="304" width="940" height="62" rx="20" fill="#1a2620" stroke="#35534a"/>
-    <text x="178" y="340" fill="#fb923c" font-family="Segoe UI, Arial, sans-serif" font-size="18" font-weight="800">Delivery</text>
-    <text x="316" y="340" fill="#d3e6de" font-family="Segoe UI, Arial, sans-serif" font-size="15">CLI reports • Git notes • wiki pages • ADRs • Slack / Discord • PR / MR summaries</text>
+  <g>
+    <rect x="60" y="110" width="180" height="230" rx="14" class="layer-box"/>
+    <text x="78" y="138" class="label-green">Local-first</text>
+    <line x1="78" y1="148" x2="220" y2="148" stroke="#4ade80" stroke-width="0.8" opacity="0.4"/>
+    <text x="78" y="174" class="text-body">JSON storage</text>
+    <text x="78" y="192" class="text-body">Git notes</text>
+    <text x="78" y="210" class="text-body">Local cache</text>
+    <text x="78" y="228" class="text-body">Zero-setup</text>
   </g>
 
-  <g filter="url(#shadow)">
-    <rect x="70" y="150" width="150" height="150" rx="22" fill="#0f1b1a" stroke="#27413c"/>
-    <text x="97" y="224" fill="#7be0bc" font-family="Segoe UI, Arial, sans-serif" font-size="17" font-weight="800">Local-first</text>
-    <text x="97" y="250" fill="#bfd4cc" font-family="Segoe UI, Arial, sans-serif" font-size="13">JSON storage</text>
-    <text x="97" y="272" fill="#bfd4cc" font-family="Segoe UI, Arial, sans-serif" font-size="13">Git notes</text>
+  <g>
+    <rect x="270" y="110" width="500" height="76" rx="12" class="layer-box"/>
+    <text x="288" y="136" class="label-yellow">Capture</text>
+    <text x="288" y="156" class="text-body-sm">git commit · hook · IDE context · environment</text>
+    <text x="288" y="170" class="text-body-sm">review signals · CI metadata</text>
+    <path d="M 520 186 L 520 210" class="flow-line"/>
+  </g>
 
-    <rect x="980" y="150" width="150" height="150" rx="22" fill="#0f1b1a" stroke="#27413c"/>
-    <text x="1008" y="224" fill="#ffd166" font-family="Segoe UI, Arial, sans-serif" font-size="17" font-weight="800">Team-ready</text>
-    <text x="1008" y="250" fill="#bfd4cc" font-family="Segoe UI, Arial, sans-serif" font-size="13">PostgreSQL</text>
-    <text x="1008" y="272" fill="#bfd4cc" font-family="Segoe UI, Arial, sans-serif" font-size="13">Dashboards</text>
+  <g>
+    <rect x="270" y="214" width="500" height="92" rx="12" class="layer-box"/>
+    <text x="288" y="242" class="label-yellow">Analyze</text>
+    <text x="288" y="262" class="text-body-sm">diff parsing · intent detection · impact analysis</text>
+    <text x="288" y="276" class="text-body-sm">quality / security / performance scoring</text>
+  </g>
+
+  <g>
+    <rect x="820" y="110" width="240" height="230" rx="14" class="layer-box"/>
+    <text x="840" y="138" class="label-orange">Team-ready</text>
+    <line x1="840" y1="148" x2="1040" y2="148" stroke="#fb923c" stroke-width="0.8" opacity="0.4"/>
+    <text x="840" y="174" class="text-body">PostgreSQL</text>
+    <text x="840" y="192" class="text-body">Dashboards</text>
+    <text x="840" y="210" class="text-body">Web API</text>
+    <text x="840" y="228" class="text-body">Team sync</text>
+  </g>
+
+  <path d="M 240 146 L 270 146" class="flow-dash"/>
+  <path d="M 240 249 L 270 249" class="flow-dash"/>
+  <path d="M 770 146 L 820 146" class="flow-dash"/>
+  <path d="M 770 258 L 820 258" class="flow-dash"/>
+
+  <g>
+    <text x="60" y="352" class="label-orange">Delivery</text>
+    <text x="60" y="370" class="text-body-sm">CLI reports · Git notes · wiki pages · ADRs · Slack / Discord</text>
+    <text x="60" y="384" class="text-body-sm">PR / MR summaries · dashboards</text>
   </g>
 </svg>
