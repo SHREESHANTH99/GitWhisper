@@ -217,7 +217,7 @@ fn collect_snapshot_from_contexts(contexts: &[CommitContext]) -> AnalyticsSnapsh
                 .iter()
                 .map(|(path, count)| (path.clone(), *count))
                 .collect::<Vec<_>>();
-            top_files.sort_by(|left, right| right.1.cmp(&left.1));
+            top_files.sort_by_key(|right| std::cmp::Reverse(right.1));
 
             PersonMetrics {
                 files_touched: file_map.len(),
@@ -231,7 +231,7 @@ fn collect_snapshot_from_contexts(contexts: &[CommitContext]) -> AnalyticsSnapsh
             }
         })
         .collect::<Vec<_>>();
-    people.sort_by(|left, right| right.commits.cmp(&left.commits));
+    people.sort_by_key(|right| std::cmp::Reverse(right.commits));
 
     let mut files = file_counts
         .into_iter()
@@ -255,7 +255,7 @@ fn collect_snapshot_from_contexts(contexts: &[CommitContext]) -> AnalyticsSnapsh
             }
         })
         .collect::<Vec<_>>();
-    files.sort_by(|left, right| right.commits.cmp(&left.commits));
+    files.sort_by_key(|right| std::cmp::Reverse(right.commits));
 
     let mut risks = Vec::new();
     for file in files.iter().take(20) {

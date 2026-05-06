@@ -210,7 +210,7 @@ fn parse_shortlog(raw: &str, limit: usize) -> Vec<OwnerStat> {
         .filter_map(parse_shortlog_line)
         .collect::<Vec<_>>();
 
-    stats.sort_by(|a, b| b.commits.cmp(&a.commits));
+    stats.sort_by_key(|b| std::cmp::Reverse(b.commits));
 
     if limit > 0 && stats.len() > limit {
         stats.truncate(limit);

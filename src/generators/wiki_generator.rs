@@ -144,7 +144,7 @@ fn write_person_page(
     }
 
     let mut top_files = per_file.into_iter().collect::<Vec<_>>();
-    top_files.sort_by(|left, right| right.1.cmp(&left.1));
+    top_files.sort_by_key(|right| std::cmp::Reverse(right.1));
     let mut page = String::new();
     page.push_str(&format!("# {}\n\n", author));
     page.push_str(&format!("- Commits captured: {}\n\n", commits.len()));
