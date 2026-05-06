@@ -3,5 +3,4 @@
 build.log
 exports/
 .gitwhisper.local.toml
-docs/
 .DS_Store
