@@ -145,8 +145,11 @@ fn main() {
         Commands::Wiki { output } => generators::wiki_generator::generate_wiki(&output),
         Commands::Adr { output } => generators::adr_generator::generate_adrs(&output),
         Commands::PostCommit => collaboration::run_post_commit(&default_api_key),
-        Commands::Search { query, limit, json } => {
-            run_command(viewer::search::show_search(&query, limit, json, &default_api_key))
-        }
+        Commands::Search { query, limit, json } => run_command(viewer::search::show_search(
+            &query,
+            limit,
+            json,
+            &default_api_key,
+        )),
     }
 }

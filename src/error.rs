@@ -34,6 +34,7 @@ pub enum AppError {
     #[error("GEMINI_API_KEY not set. Add it to .env or export it.")]
     MissingApiKey,
 
+    #[allow(dead_code)]
     #[error("AI request timed out after {seconds}s. Try increasing request_timeout_secs in .gitwhisper.toml")]
     Timeout { seconds: u64 },
 

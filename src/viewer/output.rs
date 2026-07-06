@@ -2,6 +2,7 @@
 //!
 //! Every public function in this module returns either a `colored::ColoredString`
 //! (for callers that embed the value inside a larger `format!`) or a `String`
+#![allow(dead_code)]
 //! (for pre-built multi-char composites like bars and badges).
 
 use colored::Colorize;
@@ -35,11 +36,7 @@ pub fn section_header(icon: &str, title: &str, subtitle: &str) {
 
 /// Prints a lightweight sub-section label (no horizontal rules).
 pub fn subsection(label: &str) {
-    println!(
-        "\n  {} {}",
-        "›".bright_black(),
-        label.bold().bright_white()
-    );
+    println!("\n  {} {}", "›".bright_black(), label.bold().bright_white());
 }
 
 // ── Risk helpers ──────────────────────────────────────────────────────────────
@@ -76,13 +73,13 @@ pub fn risk_bar(score: u32) -> String {
 pub fn intent_badge(intent: &str) -> String {
     let label = format!("[{intent}]");
     match intent.to_ascii_lowercase().as_str() {
-        "feature" | "feat"        => label.green().bold().to_string(),
+        "feature" | "feat" => label.green().bold().to_string(),
         "fix" | "bugfix" | "bug" => label.red().bold().to_string(),
-        "refactor"                => label.cyan().bold().to_string(),
-        "performance" | "perf"   => label.yellow().bold().to_string(),
-        "security"                => label.magenta().bold().to_string(),
+        "refactor" => label.cyan().bold().to_string(),
+        "performance" | "perf" => label.yellow().bold().to_string(),
+        "security" => label.magenta().bold().to_string(),
         "docs" | "documentation" => label.blue().bold().to_string(),
-        _                         => label.bright_black().bold().to_string(),
+        _ => label.bright_black().bold().to_string(),
     }
 }
 

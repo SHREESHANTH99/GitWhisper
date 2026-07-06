@@ -201,7 +201,9 @@ pub fn normalize_repo_path(path: &str) -> AppResult<String> {
         provided
             .strip_prefix(&root)
             .map(Path::to_path_buf)
-            .map_err(|_| AppError::FileNotTracked { path: path.to_string() })?
+            .map_err(|_| AppError::FileNotTracked {
+                path: path.to_string(),
+            })?
     } else {
         provided
     };
@@ -221,7 +223,9 @@ pub fn normalize_repo_path(path: &str) -> AppResult<String> {
 
     let normalized = parts.join("/");
     if normalized.is_empty() {
-        Err(AppError::FileNotTracked { path: path.to_string() })
+        Err(AppError::FileNotTracked {
+            path: path.to_string(),
+        })
     } else {
         Ok(normalized)
     }

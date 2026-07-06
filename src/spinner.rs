@@ -11,9 +11,7 @@ use indicatif::{ProgressBar, ProgressStyle};
 use std::time::Duration;
 
 /// Braille dot-cycle spinner with a purple tick.
-const TICK_CHARS: &[&str] = &[
-    "⠋", "⠙", "⠹", "⠸", "⠼", "⠴", "⠦", "⠧", "⠇", "⠏",
-];
+const TICK_CHARS: &[&str] = &["⠋", "⠙", "⠹", "⠸", "⠼", "⠴", "⠦", "⠧", "⠇", "⠏"];
 
 pub struct Spinner {
     bar: ProgressBar,
@@ -46,6 +44,7 @@ impl Spinner {
     }
 
     /// Stops the spinner and prints a ⚠ warning message.
+    #[allow(dead_code)]
     pub fn warn(self, msg: impl Into<String>) {
         self.bar
             .finish_with_message(format!("\x1b[33m⚠\x1b[0m  {}", msg.into()));

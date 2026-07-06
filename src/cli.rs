@@ -26,9 +26,7 @@ pub enum Commands {
     /// Capture context for the current HEAD commit.
     Capture,
     /// Capture context, generate a commit explanation, and store it in Git notes.
-    Annotate {
-        commit: Option<String>,
-    },
+    Annotate { commit: Option<String> },
     /// Share a commit explanation to Slack or Discord.
     Share {
         provider: ShareProvider,
@@ -52,13 +50,9 @@ pub enum Commands {
     /// Show the commit timeline for a file.
     Timeline { file: String },
     /// Explain why a file changed using Git history plus captured context.
-    Explain {
-        file: String,
-    },
+    Explain { file: String },
     /// Summarize how a file evolved over time (milestones + narrative).
-    Summarize {
-        file: String,
-    },
+    Summarize { file: String },
     /// Analyze code quality risk for a file or directory.
     Quality { path: String },
     /// Analyze security risk for a file or directory.

@@ -62,13 +62,12 @@ pub fn generate(prompt: &str, model: &str, api_key: &str, timeout_secs: u64) -> 
     // can be surfaced to the user rather than silently becoming `{}`.
     let body_text = response.text()?;
 
-    let json_response: serde_json::Value = serde_json::from_str(&body_text)
-        .unwrap_or_else(|_| {
-            // Not valid JSON — embed up to 500 chars of the raw body so the
-            // error path below can include it in its message.
-            let preview = &body_text[..body_text.len().min(500)];
-            json!({ "__raw_error__": preview })
-        });
+    let json_response: serde_json::Value = serde_json::from_str(&body_text).unwrap_or_else(|_| {
+        // Not valid JSON — embed up to 500 chars of the raw body so the
+        // error path below can include it in its message.
+        let preview = &body_text[..body_text.len().min(500)];
+        json!({ "__raw_error__": preview })
+    });
 
     if !status.is_success() {
         // Gemini surfaces errors as {"error": {"message": "…", "code": N}}.
@@ -77,11 +76,7 @@ pub fn generate(prompt: &str, model: &str, api_key: &str, timeout_secs: u64) -> 
             .get("error")
             .and_then(|v| v.get("message"))
             .and_then(|v| v.as_str())
-            .or_else(|| {
-                json_response
-                    .get("__raw_error__")
-                    .and_then(|v| v.as_str())
-            })
+            .or_else(|| json_response.get("__raw_error__").and_then(|v| v.as_str()))
             .unwrap_or("Gemini request failed with no error message");
 
         return Err(AppError::message(format!(
@@ -90,9 +85,7 @@ pub fn generate(prompt: &str, model: &str, api_key: &str, timeout_secs: u64) -> 
     }
 
     extract_text(&json_response).ok_or_else(|| {
-        AppError::message(
-            "AI response did not include explanation text (missing candidate text).",
-        )
+        AppError::message("AI response did not include explanation text (missing candidate text).")
     })
 }
 

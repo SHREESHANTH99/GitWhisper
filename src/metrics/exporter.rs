@@ -29,9 +29,18 @@ pub fn export_snapshot(snapshot: &AnalyticsSnapshot, format: &str, output: &Path
 pub fn snapshot_to_csv(snapshot: &AnalyticsSnapshot) -> String {
     let mut lines = Vec::new();
     lines.push("record_type,key,value,extra1,extra2".to_string());
-    lines.push(format!("overview,total_commits,{},,", snapshot.overview.total_commits));
-    lines.push(format!("overview,unique_authors,{},,", snapshot.overview.unique_authors));
-    lines.push(format!("overview,files_touched,{},,", snapshot.overview.files_touched));
+    lines.push(format!(
+        "overview,total_commits,{},,",
+        snapshot.overview.total_commits
+    ));
+    lines.push(format!(
+        "overview,unique_authors,{},,",
+        snapshot.overview.unique_authors
+    ));
+    lines.push(format!(
+        "overview,files_touched,{},,",
+        snapshot.overview.files_touched
+    ));
 
     let ib = &snapshot.intent_breakdown;
     for (label, count) in &[
@@ -86,7 +95,12 @@ pub fn snapshot_to_csv(snapshot: &AnalyticsSnapshot) -> String {
             "commit,{},{},{},",
             csv_escape(&commit.commit),
             commit.files_changed,
-            csv_escape(&format!("{} by {} | {}", commit.subject, commit.author, commit.files.join(" | ")))
+            csv_escape(&format!(
+                "{} by {} | {}",
+                commit.subject,
+                commit.author,
+                commit.files.join(" | ")
+            ))
         ));
     }
 
