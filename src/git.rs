@@ -30,6 +30,16 @@ pub struct OwnerStat {
     pub email: String,
 }
 
+#[derive(Debug, Clone)]
+pub struct CommitActivityRecord {
+    pub hash: String,
+    pub short_hash: String,
+    pub timestamp: String,
+    pub author: String,
+    pub subject: String,
+    pub files: Vec<String>,
+}
+
 pub fn repo_root() -> AppResult<PathBuf> {
     let output = run_git(&["rev-parse", "--show-toplevel"])?;
     Ok(PathBuf::from(output))
@@ -119,6 +129,21 @@ pub fn changed_files_for_commit(commit: &str) -> AppResult<Vec<String>> {
         .collect())
 }
 
+pub fn recent_commit_activity(max_count: usize) -> AppResult<Vec<CommitActivityRecord>> {
+    let max_count = format!("--max-count={max_count}");
+    let format = "--format=%H%x1f%h%x1f%cI%x1f%an%x1f%s";
+    let output = run_git(&["log", &max_count, format])?;
+
+    Ok(output
+        .lines()
+        .filter_map(parse_commit_activity_line)
+        .map(|mut record| {
+            record.files = changed_files_for_commit(&record.hash).unwrap_or_default();
+            record
+        })
+        .collect())
+}
+
 pub fn commit_patch(commit: &str) -> AppResult<String> {
     run_git(&[
         "show",
@@ -176,7 +201,7 @@ pub fn normalize_repo_path(path: &str) -> AppResult<String> {
         provided
             .strip_prefix(&root)
             .map(Path::to_path_buf)
-            .map_err(|_| AppError::message("Please provide a file path inside the repository."))?
+            .map_err(|_| AppError::FileNotTracked { path: path.to_string() })?
     } else {
         provided
     };
@@ -196,9 +221,7 @@ pub fn normalize_repo_path(path: &str) -> AppResult<String> {
 
     let normalized = parts.join("/");
     if normalized.is_empty() {
-        Err(AppError::message(
-            "Please provide a file path inside the repository.",
-        ))
+        Err(AppError::FileNotTracked { path: path.to_string() })
     } else {
         Ok(normalized)
     }
@@ -296,6 +319,18 @@ fn parse_author_history(raw: &str) -> Vec<AuthorCommitRecord> {
         .collect()
 }
 
+fn parse_commit_activity_line(line: &str) -> Option<CommitActivityRecord> {
+    let mut fields = line.split('\u{1f}');
+    Some(CommitActivityRecord {
+        hash: fields.next()?.trim().to_string(),
+        short_hash: fields.next()?.trim().to_string(),
+        timestamp: fields.next()?.trim().to_string(),
+        author: fields.next()?.trim().to_string(),
+        subject: fields.next()?.trim().to_string(),
+        files: Vec::new(),
+    })
+}
+
 fn run_git(args: &[&str]) -> AppResult<String> {
     let output = Command::new("git").args(args).output().map_err(|error| {
         AppError::Git(format!("Failed to run git {}: {}", args.join(" "), error))
@@ -304,8 +339,11 @@ fn run_git(args: &[&str]) -> AppResult<String> {
     if output.status.success() {
         Ok(String::from_utf8_lossy(&output.stdout).trim().to_string())
     } else {
-        Err(AppError::Git(
-            String::from_utf8_lossy(&output.stderr).trim().to_string(),
-        ))
+        let stderr = String::from_utf8_lossy(&output.stderr).trim().to_string();
+        if stderr.to_lowercase().contains("not a git repository") {
+            Err(AppError::NotGitRepo)
+        } else {
+            Err(AppError::Git(stderr))
+        }
     }
 }

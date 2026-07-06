@@ -17,11 +17,27 @@ mod history;
 mod hooks;
 mod integrations;
 mod metrics;
+mod spinner;
 mod storage;
 mod viewer;
 
 use clap::Parser;
 use cli::{Cli, Commands};
+
+fn run_command(result: crate::error::AppResult<()>) {
+    if let Err(error) = result {
+        use colored::Colorize;
+        eprintln!("{} {}", "❌ Error:".red().bold(), error);
+        std::process::exit(1);
+    }
+}
+
+fn requires_ai(command: &Commands) -> bool {
+    matches!(
+        command,
+        Commands::Annotate { .. } | Commands::Explain { .. } | Commands::Summarize { .. }
+    )
+}
 
 fn main() {
     let cli = Cli::parse();
@@ -29,48 +45,30 @@ fn main() {
     dotenvy::dotenv().ok();
 
     let default_api_key = std::env::var("GEMINI_API_KEY").unwrap_or_else(|_| String::new());
+
+    if requires_ai(&cli.command) && default_api_key.is_empty() {
+        eprintln!("Note: GEMINI_API_KEY not set. Will use local Ollama or heuristics.");
+    }
+
     match cli.command {
         Commands::Init => hooks::install_hook(),
         Commands::Capture => capture::capture_context(),
-        Commands::Annotate { commit, api_key } => {
-            let key_to_use = if api_key.is_empty() {
-                &default_api_key
-            } else {
-                &api_key
-            };
-            collaboration::annotate_commit(commit.as_deref(), key_to_use);
+        Commands::Annotate { commit } => {
+            collaboration::annotate_commit(commit.as_deref(), &default_api_key);
         }
-        Commands::Share {
-            provider,
-            commit,
-            api_key,
-        } => {
-            let key_to_use = if api_key.is_empty() {
-                &default_api_key
-            } else {
-                &api_key
-            };
+        Commands::Share { provider, commit } => {
             let provider = match provider {
                 cli::ShareProvider::Slack => "slack",
                 cli::ShareProvider::Discord => "discord",
             };
-            integrations::share_commit(provider, commit.as_deref(), key_to_use);
+            integrations::share_commit(provider, commit.as_deref(), &default_api_key);
         }
-        Commands::Review {
-            provider,
-            commit,
-            api_key,
-        } => {
-            let key_to_use = if api_key.is_empty() {
-                &default_api_key
-            } else {
-                &api_key
-            };
+        Commands::Review { provider, commit } => {
             let provider = match provider {
                 cli::ReviewProvider::Github => "github",
                 cli::ReviewProvider::Gitlab => "gitlab",
             };
-            integrations::publish_review(provider, commit.as_deref(), key_to_use);
+            integrations::publish_review(provider, commit.as_deref(), &default_api_key);
         }
         Commands::Digest { provider, period } => {
             let provider = match provider {
@@ -86,23 +84,13 @@ fn main() {
         Commands::Log => viewer::log::show_logs(),
         Commands::Replay { commit } => viewer::replay::replay_commit(commit.as_deref()),
         Commands::Timeline { file } => viewer::timeline::show_timeline(&file),
-        Commands::Explain { file, api_key } => {
-            let key_to_use = if api_key.is_empty() {
-                &default_api_key
-            } else {
-                &api_key
-            };
-            viewer::explain::explain_file(&file, key_to_use);
+        Commands::Explain { file } => {
+            viewer::explain::explain_file(&file, &default_api_key);
         }
-        Commands::Summarize { file, api_key } => {
-            let key_to_use = if api_key.is_empty() {
-                &default_api_key
-            } else {
-                &api_key
-            };
-            viewer::summarize::summarize_file(&file, key_to_use);
+        Commands::Summarize { file } => {
+            viewer::summarize::summarize_file(&file, &default_api_key);
         }
-        Commands::Quality { path } => viewer::quality::show_quality(&path),
+        Commands::Quality { path } => run_command(viewer::quality::show_quality(&path)),
         Commands::Security { path } => viewer::security::show_security(&path),
         Commands::Performance { path } => viewer::performance::show_performance(&path),
         Commands::BugPredict { path, limit } => {
@@ -157,5 +145,8 @@ fn main() {
         Commands::Wiki { output } => generators::wiki_generator::generate_wiki(&output),
         Commands::Adr { output } => generators::adr_generator::generate_adrs(&output),
         Commands::PostCommit => collaboration::run_post_commit(&default_api_key),
+        Commands::Search { query, limit, json } => {
+            run_command(viewer::search::show_search(&query, limit, json, &default_api_key))
+        }
     }
 }

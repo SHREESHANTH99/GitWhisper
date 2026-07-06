@@ -65,10 +65,12 @@ fi
         }
     }
 
-    println!(
-        "Installed gitwhisper post-commit hook at {}",
-        hook_path.display()
-    );
+    println!("✅ GitWhisper initialized!");
+    println!("   Hook installed at: {}", hook_path.display());
+    println!();
+    println!("Every commit will now automatically capture context.");
+    println!("Run `gitwhisper capture` to capture context for the current HEAD.");
+    println!("Run `gitwhisper explain <file>` to get an AI explanation of any file.");
 }
 
 fn strip_existing_gitwhisper_hook(existing: &str) -> String {

@@ -77,14 +77,16 @@ pub fn run_post_commit(api_key: &str) {
         return;
     }
 
-    if let Err(error) = annotate_commit_inner(Some("HEAD"), api_key, true) {
+    if let Err(error) = annotate_commit_inner(Some("HEAD"), api_key, true, None) {
         eprintln!("{error}");
     }
 }
 
 pub fn annotate_commit(commit: Option<&str>, api_key: &str) {
-    match annotate_commit_inner(commit, api_key, false) {
+    let spin = crate::spinner::Spinner::new("Generating explanation...");
+    match annotate_commit_inner(commit, api_key, false, Some(&spin)) {
         Ok(outcome) => {
+            spin.success("Annotation complete");
             println!("Annotated commit {}.", outcome.commit);
             println!("Summary: {}", outcome.summary);
 
@@ -103,7 +105,7 @@ pub fn annotate_commit(commit: Option<&str>, api_key: &str) {
             }
         }
         Err(error) => {
-            eprintln!("{error}");
+            spin.fail(error.to_string());
         }
     }
 }
@@ -204,11 +206,15 @@ fn annotate_commit_inner(
     commit: Option<&str>,
     api_key: &str,
     skip_capture: bool,
+    spin: Option<&crate::spinner::Spinner>,
 ) -> AppResult<AnnotationOutcome> {
     let config = crate::config::AppConfig::load()?;
     let report = prepare_commit_report(commit, api_key, skip_capture)?;
 
     let note_written = if config.collaboration.enable_git_notes {
+        if let Some(s) = spin {
+            s.update("Writing to git notes...");
+        }
         crate::git::add_git_note(
             &report.full_commit,
             &config.collaboration.git_notes_ref,

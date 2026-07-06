@@ -4,7 +4,15 @@ use clap::{Parser, Subcommand, ValueEnum};
 #[command(
     name = "gitwhisper",
     version,
-    about = "AI-powered Git commit intelligence for developers"
+    about = "AI-powered Git commit intelligence for developers",
+    after_long_help = "EXAMPLES:
+  gitwhisper init                      # Initialize in your repo
+  gitwhisper explain src/auth.rs       # Why did this file change?
+  gitwhisper quality src/             # Code quality report
+  gitwhisper security src/            # Security risk scan
+  gitwhisper owners src/auth.rs       # Who owns this file?
+  gitwhisper dashboard                # Start analytics dashboard
+  gitwhisper search 'security fixes'  # Search history in natural language"
 )]
 pub struct Cli {
     #[command(subcommand)]
@@ -20,22 +28,16 @@ pub enum Commands {
     /// Capture context, generate a commit explanation, and store it in Git notes.
     Annotate {
         commit: Option<String>,
-        #[arg(short, long, default_value = "")]
-        api_key: String,
     },
     /// Share a commit explanation to Slack or Discord.
     Share {
         provider: ShareProvider,
         commit: Option<String>,
-        #[arg(short, long, default_value = "")]
-        api_key: String,
     },
     /// Publish a Gitwhisper review summary to GitHub or GitLab.
     Review {
         provider: ReviewProvider,
         commit: Option<String>,
-        #[arg(short, long, default_value = "")]
-        api_key: String,
     },
     /// Send a daily or weekly digest to Slack or Discord.
     Digest {
@@ -52,14 +54,10 @@ pub enum Commands {
     /// Explain why a file changed using Git history plus captured context.
     Explain {
         file: String,
-        #[arg(short, long, default_value = "")]
-        api_key: String,
     },
     /// Summarize how a file evolved over time (milestones + narrative).
     Summarize {
         file: String,
-        #[arg(short, long, default_value = "")]
-        api_key: String,
     },
     /// Analyze code quality risk for a file or directory.
     Quality { path: String },
@@ -70,19 +68,19 @@ pub enum Commands {
     /// Predict which files are most bug-prone.
     BugPredict {
         path: Option<String>,
-        #[arg(short, long, default_value_t = 10)]
+        #[arg(short, long, default_value_t = 10, help = "Maximum number of results")]
         limit: usize,
     },
     /// Report knowledge-silo and ownership concentration risk.
     KnowledgeRisk {
         path: Option<String>,
-        #[arg(short, long, default_value_t = 10)]
+        #[arg(short, long, default_value_t = 10, help = "Maximum number of results")]
         limit: usize,
     },
     /// Rank refactor priority across a file set.
     RefactorPriority {
         path: Option<String>,
-        #[arg(short, long, default_value_t = 10)]
+        #[arg(short, long, default_value_t = 10, help = "Maximum number of results")]
         limit: usize,
     },
     /// Store explanation feedback for a commit.
@@ -99,7 +97,7 @@ pub enum Commands {
     },
     /// Show recent explanation feedback entries.
     FeedbackLog {
-        #[arg(short, long, default_value_t = 20)]
+        #[arg(short, long, default_value_t = 20, help = "Maximum number of results")]
         limit: usize,
     },
     /// Export stored feedback entries.
@@ -114,18 +112,18 @@ pub enum Commands {
     WhoAmI,
     /// Show recent audit events.
     AuditLog {
-        #[arg(short, long, default_value_t = 20)]
+        #[arg(short, long, default_value_t = 20, help = "Maximum number of results")]
         limit: usize,
     },
     /// Prune old audit events.
     AuditPrune {
-        #[arg(long)]
+        #[arg(long, help = "Number of days of history to keep")]
         days: Option<u32>,
     },
     /// Show likely code owners (top contributors) for a file or directory.
     Owners {
         path: String,
-        #[arg(short, long, default_value_t = 10)]
+        #[arg(short, long, default_value_t = 10, help = "Maximum number of results")]
         limit: usize,
     },
     /// Start the lightweight team analytics dashboard.
@@ -154,6 +152,15 @@ pub enum Commands {
     },
     #[command(hide = true)]
     PostCommit,
+    /// Search commit history in natural language.
+    Search {
+        /// Natural language query (e.g. "security fixes last month")
+        query: String,
+        #[arg(short, long, default_value_t = 10)]
+        limit: usize,
+        #[arg(long, help = "Output results as JSON")]
+        json: bool,
+    },
 }
 
 #[derive(Copy, Clone, Debug, ValueEnum)]

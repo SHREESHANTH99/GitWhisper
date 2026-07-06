@@ -186,6 +186,7 @@ pub fn explain_file(file: &str, api_key: &str) {
             backend_cache_key(backend, cloud_model, local_cache_key.as_str()).to_string();
         let started = Instant::now();
         let result = match backend {
+            // TODO: Use streaming API (streamGenerateContent) to show tokens as they arrive
             AiBackend::Cloud => crate::ai::cloud_gemini::generate(
                 &prompt,
                 cloud_model,

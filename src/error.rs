@@ -1,74 +1,48 @@
-use std::fmt::{Display, Formatter};
+use thiserror::Error;
 
 pub type AppResult<T> = Result<T, AppError>;
 
-#[derive(Debug)]
+#[derive(Error, Debug)]
 pub enum AppError {
+    #[error("{0}")]
     Message(String),
-    Io(std::io::Error),
-    Json(serde_json::Error),
-    Toml(toml::de::Error),
-    TomlSer(toml::ser::Error),
-    Http(reqwest::Error),
-    Postgres(postgres::Error),
+
+    #[error("IO error: {0}")]
+    Io(#[from] std::io::Error),
+
+    #[error("JSON parse error: {0}")]
+    Json(#[from] serde_json::Error),
+
+    #[error("Config parse error: {0}")]
+    Toml(#[from] toml::de::Error),
+
+    #[error("Config serialize error: {0}")]
+    TomlSer(#[from] toml::ser::Error),
+
+    #[error("HTTP error: {0}")]
+    Http(#[from] reqwest::Error),
+
+    #[error("Database error: {0}")]
+    Postgres(#[from] postgres::Error),
+
+    #[error("Git error: {0}")]
     Git(String),
+
+    #[error("Not in a git repository. Run from inside a git repo.")]
+    NotGitRepo,
+
+    #[error("GEMINI_API_KEY not set. Add it to .env or export it.")]
+    MissingApiKey,
+
+    #[error("AI request timed out after {seconds}s. Try increasing request_timeout_secs in .gitwhisper.toml")]
+    Timeout { seconds: u64 },
+
+    #[error("File not tracked by git: {path}")]
+    FileNotTracked { path: String },
 }
 
 impl AppError {
-    pub fn message(message: impl Into<String>) -> Self {
-        Self::Message(message.into())
-    }
-}
-
-impl Display for AppError {
-    fn fmt(&self, formatter: &mut Formatter<'_>) -> std::fmt::Result {
-        match self {
-            Self::Message(message) => write!(formatter, "{message}"),
-            Self::Io(error) => write!(formatter, "{error}"),
-            Self::Json(error) => write!(formatter, "{error}"),
-            Self::Toml(error) => write!(formatter, "{error}"),
-            Self::TomlSer(error) => write!(formatter, "{error}"),
-            Self::Http(error) => write!(formatter, "{error}"),
-            Self::Postgres(error) => write!(formatter, "{error}"),
-            Self::Git(message) => write!(formatter, "{message}"),
-        }
-    }
-}
-
-impl std::error::Error for AppError {}
-
-impl From<std::io::Error> for AppError {
-    fn from(error: std::io::Error) -> Self {
-        Self::Io(error)
-    }
-}
-
-impl From<serde_json::Error> for AppError {
-    fn from(error: serde_json::Error) -> Self {
-        Self::Json(error)
-    }
-}
-
-impl From<toml::de::Error> for AppError {
-    fn from(error: toml::de::Error) -> Self {
-        Self::Toml(error)
-    }
-}
-
-impl From<toml::ser::Error> for AppError {
-    fn from(error: toml::ser::Error) -> Self {
-        Self::TomlSer(error)
-    }
-}
-
-impl From<reqwest::Error> for AppError {
-    fn from(error: reqwest::Error) -> Self {
-        Self::Http(error)
-    }
-}
-
-impl From<postgres::Error> for AppError {
-    fn from(error: postgres::Error) -> Self {
-        Self::Postgres(error)
+    pub fn message(msg: impl Into<String>) -> Self {
+        Self::Message(msg.into())
     }
 }

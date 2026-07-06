@@ -1,5 +1,6 @@
 pub mod exporter;
 
+use crate::analysis::ChangeCategory;
 use crate::storage::context::CommitContext;
 use chrono::Datelike;
 use serde::Serialize;
@@ -14,6 +15,22 @@ pub struct AnalyticsSnapshot {
     pub weekly_activity: Vec<WeeklyActivity>,
     pub risks: Vec<RiskMetric>,
     pub recent_commits: Vec<RecentCommitMetric>,
+    /// Commit-count breakdown by detected change category.
+    pub intent_breakdown: IntentBreakdown,
+}
+
+/// How many commits in this snapshot belong to each change category.
+/// The categories map 1-to-1 to [`crate::analysis::ChangeCategory`] variants;
+/// `security` is absent from that enum so counts are accumulated under `unknown`.
+#[derive(Debug, Clone, Serialize, Default)]
+pub struct IntentBreakdown {
+    pub feature: usize,
+    pub fix: usize,
+    pub refactor: usize,
+    pub security: usize,
+    pub performance: usize,
+    pub docs: usize,
+    pub unknown: usize,
 }
 
 #[derive(Debug, Clone, Serialize)]
@@ -39,6 +56,9 @@ pub struct FileMetrics {
     pub commits: usize,
     pub top_author: String,
     pub top_author_share: f64,
+    /// Highest `impact_score` seen across all captured contexts that touched this
+    /// file.  `None` when no context with analysis data is available.
+    pub risk_score: Option<u32>,
 }
 
 #[derive(Debug, Clone, Serialize)]
@@ -61,11 +81,13 @@ pub struct RecentCommitMetric {
     pub author: String,
     pub subject: String,
     pub files_changed: usize,
+    pub files: Vec<String>,
 }
 
 pub fn collect_snapshot() -> crate::error::AppResult<AnalyticsSnapshot> {
     let contexts = crate::storage::load::load_all_contexts()?;
-    Ok(collect_snapshot_from_contexts(&contexts))
+    let git_activity = crate::git::recent_commit_activity(500).unwrap_or_default();
+    Ok(collect_snapshot_from_sources(&contexts, &git_activity))
 }
 
 pub fn build_digest(period: &str) -> crate::error::AppResult<String> {
@@ -151,6 +173,15 @@ pub fn build_digest(period: &str) -> crate::error::AppResult<String> {
 }
 
 fn collect_snapshot_from_contexts(contexts: &[CommitContext]) -> AnalyticsSnapshot {
+    collect_snapshot_from_sources(contexts, &[])
+}
+
+fn collect_snapshot_from_sources(
+    contexts: &[CommitContext],
+    git_activity: &[crate::git::CommitActivityRecord],
+) -> AnalyticsSnapshot {
+    let observed = observed_commits(contexts, git_activity);
+    let total_commits = observed.len();
     let mut author_commits: HashMap<String, usize> = HashMap::new();
     let mut author_files: HashMap<String, HashMap<String, usize>> = HashMap::new();
     let mut file_counts: HashMap<String, usize> = HashMap::new();
@@ -161,13 +192,26 @@ fn collect_snapshot_from_contexts(contexts: &[CommitContext]) -> AnalyticsSnapsh
     let mut commits_last_30d = 0usize;
     let now = chrono::Utc::now();
 
+    // intent_breakdown: tallied from captured context analysis data.
+    let mut intent = IntentBreakdown::default();
+
+    // file_risk: tracks the maximum impact_score seen for each file path
+    // across all contexts, used to populate FileMetrics::risk_score.
+    let mut file_risk: HashMap<String, u32> = HashMap::new();
+
+    // Build a map from short-hash / full-hash → context so we can look up
+    // analysis data for each observed commit without a second O(n²) scan.
+    let context_by_hash: HashMap<&str, &CommitContext> = contexts
+        .iter()
+        .map(|ctx| (ctx.commit.as_str(), ctx))
+        .collect();
+
     let mut recent = Vec::new();
 
-    for context in contexts {
-        let author = author_for_context(context);
-        *author_commits.entry(author.clone()).or_insert(0) += 1;
+    for commit in observed {
+        *author_commits.entry(commit.author.clone()).or_insert(0) += 1;
 
-        if let Ok(parsed) = chrono::DateTime::parse_from_rfc3339(&context.timestamp) {
+        if let Ok(parsed) = chrono::DateTime::parse_from_rfc3339(&commit.timestamp) {
             let parsed = parsed.with_timezone(&chrono::Utc);
             let age = now.signed_duration_since(parsed);
             if age <= chrono::Duration::days(7) {
@@ -182,32 +226,68 @@ fn collect_snapshot_from_contexts(contexts: &[CommitContext]) -> AnalyticsSnapsh
             *weekly.entry(week_key).or_insert(0) += 1;
         }
 
-        for file in &context.files {
+        // Look up the context for this commit (matched by short or full hash).
+        let matched_ctx = context_by_hash.get(commit.commit.as_str());
+
+        // ── intent_breakdown ──────────────────────────────────────────────
+        // Only count commits where a context with real analysis data exists.
+        if let Some(ctx) = matched_ctx {
+            if !ctx.analysis.is_empty() {
+                match ctx.analysis.intent.category {
+                    ChangeCategory::Feature => intent.feature += 1,
+                    ChangeCategory::BugFix => intent.fix += 1,
+                    ChangeCategory::Refactor => intent.refactor += 1,
+                    ChangeCategory::Performance => intent.performance += 1,
+                    ChangeCategory::Documentation => intent.docs += 1,
+                    // DependencyUpdate | Test | Chore | Unknown → unknown bucket.
+                    // There is no Security variant in ChangeCategory; security
+                    // signals surface through RiskLevel on IntentClassification
+                    // instead.  If a future variant is added, add a branch here.
+                    _ => intent.unknown += 1,
+                }
+
+                // ── file_risk ─────────────────────────────────────────────
+                // Propagate the commit-level impact_score to every file it
+                // touched so we can assign a best-effort risk score per file.
+                let impact = ctx.analysis.impact.impact_score;
+                if impact > 0 {
+                    for file in &commit.files {
+                        let entry = file_risk.entry(file.clone()).or_insert(0);
+                        if impact > *entry {
+                            *entry = impact;
+                        }
+                    }
+                }
+            }
+        }
+
+        for file in &commit.files {
             files_touched.insert(file.clone());
             *file_counts.entry(file.clone()).or_insert(0) += 1;
             *file_authors
                 .entry(file.clone())
                 .or_default()
-                .entry(author.clone())
+                .entry(commit.author.clone())
                 .or_insert(0) += 1;
             *author_files
-                .entry(author.clone())
+                .entry(commit.author.clone())
                 .or_default()
                 .entry(file.clone())
                 .or_insert(0) += 1;
         }
 
         recent.push(RecentCommitMetric {
-            commit: context.commit.clone(),
-            timestamp: context.timestamp.clone(),
-            author,
-            subject: crate::git::commit_subject(&context.commit).unwrap_or_default(),
-            files_changed: context.files.len(),
+            commit: commit.commit,
+            timestamp: commit.timestamp,
+            author: commit.author,
+            subject: commit.subject,
+            files_changed: commit.files.len(),
+            files: commit.files,
         });
     }
 
     recent.sort_by(|left, right| right.timestamp.cmp(&left.timestamp));
-    recent.truncate(10);
+    recent.truncate(20);
 
     let mut people = author_commits
         .into_iter()
@@ -243,6 +323,9 @@ fn collect_snapshot_from_contexts(contexts: &[CommitContext]) -> AnalyticsSnapsh
                 .max_by_key(|(_, count)| *count)
                 .unwrap_or_else(|| ("unknown".to_string(), 0));
 
+            // Pull the max impact score we observed for this file, if any.
+            let risk_score = file_risk.get(&path).copied();
+
             FileMetrics {
                 path,
                 commits,
@@ -252,6 +335,7 @@ fn collect_snapshot_from_contexts(contexts: &[CommitContext]) -> AnalyticsSnapsh
                 } else {
                     top_author_count as f64 / total as f64
                 },
+                risk_score,
             }
         })
         .collect::<Vec<_>>();
@@ -290,7 +374,7 @@ fn collect_snapshot_from_contexts(contexts: &[CommitContext]) -> AnalyticsSnapsh
     AnalyticsSnapshot {
         generated_at: chrono::Utc::now().to_rfc3339(),
         overview: OverviewMetrics {
-            total_commits: contexts.len(),
+            total_commits,
             unique_authors: people.len(),
             files_touched: files_touched.len(),
             commits_last_7d,
@@ -301,13 +385,147 @@ fn collect_snapshot_from_contexts(contexts: &[CommitContext]) -> AnalyticsSnapsh
         weekly_activity,
         risks,
         recent_commits: recent,
+        intent_breakdown: intent,
     }
 }
 
-fn author_for_context(context: &CommitContext) -> String {
+struct ObservedCommit {
+    commit: String,
+    timestamp: String,
+    author: String,
+    subject: String,
+    files: Vec<String>,
+}
+
+fn observed_commits(
+    contexts: &[CommitContext],
+    git_activity: &[crate::git::CommitActivityRecord],
+) -> Vec<ObservedCommit> {
+    if git_activity.is_empty() {
+        return contexts
+            .iter()
+            .map(|context| observed_from_context(context, None))
+            .collect();
+    }
+
+    let mut observed = Vec::new();
+
+    for record in git_activity {
+        let matched = contexts
+            .iter()
+            .enumerate()
+            .find(|(_, context)| commit_matches_context(record, context));
+
+        observed.push(observed_from_git(
+            record,
+            matched.map(|(_, context)| context),
+        ));
+    }
+
+    observed
+}
+
+fn observed_from_git(
+    record: &crate::git::CommitActivityRecord,
+    context: Option<&CommitContext>,
+) -> ObservedCommit {
+    let author = context
+        .map(|context| author_for_context(context, Some(record)))
+        .unwrap_or_else(|| record.author.clone());
+    let files = context
+        .map(|context| files_for_context(context, Some(record)))
+        .unwrap_or_else(|| normalize_files(record.files.clone()));
+
+    ObservedCommit {
+        commit: record.short_hash.clone(),
+        timestamp: record.timestamp.clone(),
+        author,
+        subject: record.subject.clone(),
+        files,
+    }
+}
+
+fn observed_from_context(
+    context: &CommitContext,
+    git_record: Option<&crate::git::CommitActivityRecord>,
+) -> ObservedCommit {
+    ObservedCommit {
+        commit: context.commit.clone(),
+        timestamp: git_record
+            .map(|record| record.timestamp.clone())
+            .unwrap_or_else(|| context.timestamp.clone()),
+        author: author_for_context(context, git_record),
+        subject: git_record
+            .map(|record| record.subject.clone())
+            .unwrap_or_else(|| crate::git::commit_subject(&context.commit).unwrap_or_default()),
+        files: files_for_context(context, git_record),
+    }
+}
+
+fn author_for_context(
+    context: &CommitContext,
+    git_record: Option<&crate::git::CommitActivityRecord>,
+) -> String {
     if !context.behavior.author.trim().is_empty() {
         context.behavior.author.clone()
+    } else if let Some(record) = git_record {
+        record.author.clone()
     } else {
         crate::git::commit_author_name(&context.commit).unwrap_or_else(|_| "unknown".to_string())
+    }
+}
+
+fn files_for_context(
+    context: &CommitContext,
+    git_record: Option<&crate::git::CommitActivityRecord>,
+) -> Vec<String> {
+    let files = if context.files.is_empty() {
+        git_record
+            .map(|record| record.files.clone())
+            .unwrap_or_else(|| {
+                crate::git::changed_files_for_commit(&context.commit).unwrap_or_default()
+            })
+    } else {
+        context.files.clone()
+    };
+
+    normalize_files(files)
+}
+
+fn normalize_files(files: Vec<String>) -> Vec<String> {
+    let mut files = files
+        .into_iter()
+        .map(|file| file.trim().replace('\\', "/"))
+        .filter(|file| !file.is_empty())
+        .collect::<Vec<_>>();
+    files.sort();
+    files.dedup();
+    files
+}
+
+fn commit_matches_context(
+    record: &crate::git::CommitActivityRecord,
+    context: &CommitContext,
+) -> bool {
+    record.hash == context.commit
+        || record.short_hash == context.commit
+        || record.hash.starts_with(&context.commit)
+        || context.commit.starts_with(&record.short_hash)
+}
+
+#[cfg(test)]
+mod tests {
+    use super::normalize_files;
+
+    #[test]
+    fn normalizes_and_deduplicates_file_paths() {
+        let files = normalize_files(vec![
+            "src\\main.rs".to_string(),
+            " src/main.rs ".to_string(),
+            String::new(),
+            "README.md".to_string(),
+        ]);
+
+        assert_eq!(files, vec!["README.md", "src/main.rs"]);
     }
 }

@@ -12,3 +12,5 @@ pub mod replay;
 pub mod security;
 pub mod summarize;
 pub mod timeline;
+pub mod output;
+pub mod search;

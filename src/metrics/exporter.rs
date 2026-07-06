@@ -28,46 +28,53 @@ pub fn export_snapshot(snapshot: &AnalyticsSnapshot, format: &str, output: &Path
 
 pub fn snapshot_to_csv(snapshot: &AnalyticsSnapshot) -> String {
     let mut lines = Vec::new();
-    lines.push("record_type,key,value,extra".to_string());
-    lines.push(format!(
-        "overview,total_commits,{},",
-        snapshot.overview.total_commits
-    ));
-    lines.push(format!(
-        "overview,unique_authors,{},",
-        snapshot.overview.unique_authors
-    ));
-    lines.push(format!(
-        "overview,files_touched,{},",
-        snapshot.overview.files_touched
-    ));
+    lines.push("record_type,key,value,extra1,extra2".to_string());
+    lines.push(format!("overview,total_commits,{},,", snapshot.overview.total_commits));
+    lines.push(format!("overview,unique_authors,{},,", snapshot.overview.unique_authors));
+    lines.push(format!("overview,files_touched,{},,", snapshot.overview.files_touched));
+
+    let ib = &snapshot.intent_breakdown;
+    for (label, count) in &[
+        ("feature", ib.feature),
+        ("fix", ib.fix),
+        ("refactor", ib.refactor),
+        ("security", ib.security),
+        ("performance", ib.performance),
+        ("docs", ib.docs),
+        ("unknown", ib.unknown),
+    ] {
+        lines.push(format!("intent,{},{},,", label, count));
+    }
 
     for person in &snapshot.people {
         lines.push(format!(
-            "person,{},{} ,{}",
+            "person,{},{},{},{}",
             csv_escape(&person.author),
             person.commits,
+            person.files_touched,
             csv_escape(&person.top_files.join(" | "))
         ));
     }
 
     for file in &snapshot.files {
+        let risk = file.risk_score.map(|s| s.to_string()).unwrap_or_default();
         lines.push(format!(
-            "file,{},{} ,{} ({:.0}%)",
+            "file,{},{},{} ({:.0}%),{}",
             csv_escape(&file.path),
             file.commits,
             csv_escape(&file.top_author),
-            file.top_author_share * 100.0
+            file.top_author_share * 100.0,
+            risk
         ));
     }
 
     for week in &snapshot.weekly_activity {
-        lines.push(format!("week,{},{} ,", week.week, week.commits));
+        lines.push(format!("week,{},{},,", week.week, week.commits));
     }
 
     for risk in &snapshot.risks {
         lines.push(format!(
-            "risk,{},{} ,{}",
+            "risk,{},{},{},",
             csv_escape(&risk.kind),
             csv_escape(&risk.subject),
             csv_escape(&risk.detail)
@@ -76,10 +83,10 @@ pub fn snapshot_to_csv(snapshot: &AnalyticsSnapshot) -> String {
 
     for commit in &snapshot.recent_commits {
         lines.push(format!(
-            "commit,{},{} ,{}",
+            "commit,{},{},{},",
             csv_escape(&commit.commit),
-            csv_escape(&commit.author),
-            csv_escape(&commit.subject)
+            commit.files_changed,
+            csv_escape(&format!("{} by {} | {}", commit.subject, commit.author, commit.files.join(" | ")))
         ));
     }
 
