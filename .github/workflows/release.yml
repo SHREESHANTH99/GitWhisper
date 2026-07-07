@@ -38,14 +38,6 @@ jobs:
           targets: ${{ matrix.target }}
           
       - name: Build
-        uses: cross-rs/cross@v1
-        if: matrix.os == 'ubuntu-latest'
-        with:
-          command: build
-          args: --release --target ${{ matrix.target }}
-
-      - name: Build (Native)
-        if: matrix.os != 'ubuntu-latest'
         run: cargo build --release --target ${{ matrix.target }}
         
       - name: Upload artifact
